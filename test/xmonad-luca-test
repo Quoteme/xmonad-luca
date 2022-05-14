@@ -2,9 +2,10 @@
 
 from easyprocess import EasyProcess
 from pyvirtualdisplay import Display
-from os import path
+import os
 
-current_dir = path.dirname(__file__)
+current_dir = os.path.dirname(__file__)
+os.putenv("PATH", current_dir+":"+os.getenv("PATH"))
 
 print('starting test display')
 
