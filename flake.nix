@@ -1,5 +1,5 @@
 {
-  description = "Luca's xmonad configuration";
+  description = "Luca's xmonad configuration 🚀";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
