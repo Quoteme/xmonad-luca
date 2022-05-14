@@ -22,30 +22,32 @@
           type = "app";
           program = "${defaultPackage}/bin/xmonad-luca";
         };
-				packages.xmonad-luca-test = pkgs.stdenv.mkDerivation {
-					name = "xmonad-luca-test";
-					src = ./test;
-					version = "1.0";
-					buildInputs = [
-						packages.xmonad-luca
-						pkgs.python310Packages.virtual-display
-					];
-					dontBuild = true;
-					installPhase = ''
-						mkdir -p $out/bin
-						cp $src/* $out/bin/
-						chmod +x $out/bin/xmonad-luca-test
-					'';
-				};
-				# packages.xmonad-luca-test = pkgs.writeShellApplication {
-				# 	name = "xmonad-luca-test";
-				# 	runtimeInputs = [
-				# 		packages.xmonad-luca
-				# 	];
-				# 	text = ''
-				# 		echo "hallo welt"
-				# 	'';
-				# };
+        packages.xmonad-luca-test = pkgs.stdenv.mkDerivation {
+          name = "xmonad-luca-test";
+          src = ./test;
+          version = "1.0";
+          buildInputs = [
+            packages.xmonad-luca
+            (pkgs.python310.withPackages (ps: with ps; [
+							virtual-display
+            ]))
+          ];
+          dontBuild = true;
+          installPhase = ''
+            						mkdir -p $out/bin
+            						cp $src/* $out/bin/
+            						chmod +x $out/bin/xmonad-luca-test
+            					'';
+        };
+        # packages.xmonad-luca-test = pkgs.writeShellApplication {
+        # 	name = "xmonad-luca-test";
+        # 	runtimeInputs = [
+        # 		packages.xmonad-luca
+        # 	];
+        # 	text = ''
+        # 		echo "hallo welt"
+        # 	'';
+        # };
         packages.xmonad-luca = pkgs.stdenv.mkDerivation {
           name = "xmonad-luca";
           pname = "xmonad-luca";
@@ -60,14 +62,14 @@
             ]))
           ];
           buildPhase = ''
-						mkdir build
-						ln -sf $src/* build
-						ghc -o xmonad-luca main.hs
+            						mkdir build
+            						ln -sf $src/* build
+            						ghc -o xmonad-luca main.hs
           '';
           installPhase = ''
-						mkdir -p $out/bin
-            cp xmonad-luca $out/bin/xmonad-luca
-						chmod +x $out/bin/xmonad-luca
+            						mkdir -p $out/bin
+                        cp xmonad-luca $out/bin/xmonad-luca
+            						chmod +x $out/bin/xmonad-luca
           '';
         };
       }

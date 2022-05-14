@@ -1,7 +1,12 @@
-#!/usr/bin/env nix-shell
-#!nix-shell -i python3 -p "(python39.withPackages(ps : with ps; [ virtual-display]))"
+#!/usr/bin/env python
+
+from easyprocess import EasyProcess
 from pyvirtualdisplay import Display
+
 print('starting test display')
+
 with Display(visible=True) as disp:
-    print("test-display started")
+	print("test-display started")
+	with EasyProcess(["xmonad-luca"]) as proc:
+		proc.wait()
 # vim: tabstop=2 shiftwidth=2 noexpandtab ft=python
