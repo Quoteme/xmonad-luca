@@ -22,10 +22,30 @@
           type = "app";
           program = "${defaultPackage}/bin/xmonad-luca";
         };
-        apps.xmonad-luca-test = {
-          type = "app";
-          program = "${defaultPackage}/bin/xmonad-luca-test";
-        };
+				packages.xmonad-luca-test = pkgs.stdenv.mkDerivation {
+					name = "xmonad-luca-test";
+					src = ./test;
+					version = "1.0";
+					buildInputs = [
+						packages.xmonad-luca
+						pkgs.python310Packages.virtual-display
+					];
+					dontBuild = true;
+					installPhase = ''
+						mkdir -p $out/bin
+						cp $src/xmonad-luca-test $out/bin/
+						chmod +x $out/bin/xmonad-luca-test
+					'';
+				};
+				# packages.xmonad-luca-test = pkgs.writeShellApplication {
+				# 	name = "xmonad-luca-test";
+				# 	runtimeInputs = [
+				# 		packages.xmonad-luca
+				# 	];
+				# 	text = ''
+				# 		echo "hallo welt"
+				# 	'';
+				# };
         packages.xmonad-luca = pkgs.stdenv.mkDerivation {
           name = "xmonad-luca";
           pname = "xmonad-luca";
