@@ -33,7 +33,7 @@
 					dontBuild = true;
 					installPhase = ''
 						mkdir -p $out/bin
-						cp $src/xmonad-luca-test $out/bin/
+						cp $src/* $out/bin/
 						chmod +x $out/bin/xmonad-luca-test
 					'';
 				};
