@@ -1,0 +1,3 @@
+#!/usr/bin/env python3
+print('hallo welt')
+# vim: tabstop=2 shiftwidth=2 noexpandtab ft=python
