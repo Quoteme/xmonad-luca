@@ -36,6 +36,7 @@
           installPhase = ''
             						mkdir -p $out/bin
             						cp $src/* $out/bin/
+												ln -sf ${packages.xmonad-luca}/bin/xmonad-luca $out/bin/xmonad-luca
             						chmod +x $out/bin/xmonad-luca-test
             					'';
         };

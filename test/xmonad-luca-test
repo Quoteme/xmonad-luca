@@ -2,11 +2,14 @@
 
 from easyprocess import EasyProcess
 from pyvirtualdisplay import Display
+from os import path
+
+current_dir = path.dirname(__file__)
 
 print('starting test display')
 
 with Display(visible=True) as disp:
 	print("test-display started")
-	with EasyProcess(["xmonad-luca"]) as proc:
+	with EasyProcess([current_dir+"/xmonad-luca"]) as proc:
 		proc.wait()
 # vim: tabstop=2 shiftwidth=2 noexpandtab ft=python
