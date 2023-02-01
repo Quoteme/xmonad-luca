@@ -29,7 +29,7 @@
           buildInputs = [
             packages.xmonad-luca
             (pkgs.python310.withPackages (ps: with ps; [
-							virtual-display
+							PyVirtualDisplay
             ]))
           ];
           dontBuild = true;
@@ -60,6 +60,8 @@
               base
               xmonad
               xmonad-contrib
+							xmonad-extras
+							text-format-simple
             ]))
           ];
           buildPhase = ''

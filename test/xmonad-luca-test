@@ -6,6 +6,7 @@ import os
 
 current_dir = os.path.dirname(__file__)
 os.putenv("PATH", current_dir+":"+os.getenv("PATH"))
+os.putenv("XMONAD_TEST_MODE", "1")
 
 print('starting test display')
 
