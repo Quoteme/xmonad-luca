@@ -68,8 +68,10 @@ import Data.Time.Clock.POSIX (getPOSIXTime, POSIXTime)
 import System.Directory (getHomeDirectory, listDirectory, removeFile)
 import System.Environment (lookupEnv)
 import Utilities (selectMaximizeWindow)
--- 
+import Options
 
+
+-- {{{ My own keybindings
 myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   -- {{{ Legend on how to use modifiers
   -- Code | Key
@@ -243,3 +245,71 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
                        *> spawn "notify-send -a \"changeVolume\" -u low -i /etc/nixos/xmonad/icon/volume-down.png \"volume down\""
     myUpdateFocus = updatePointer (0.5, 0.5) (0.1, 0.1)
   -- }}}
+-- }}}
+
+-- {{{ My additional keybindings
+-- {{{ 
+-- Additional state needed
+newtype KeyboardToggleState = KeyboardToggleState Bool deriving (Typeable, Read, Show)
+instance ExtensionClass KeyboardToggleState where
+  initialValue = KeyboardToggleState False
+-- }}}
+myAdditionalKeys config = additionalKeys config
+  [ ((0                 , xF86XK_TouchpadToggle ), toggleTouchpad)
+  , ((0                 , xF86XK_TouchpadOn     ), enableTouchpad)
+  , ((0                 , xF86XK_PowerOff       ), spawn "notify-send 'Poweroff' 'button was pressed'")
+  -- Thinkpad X201T keys
+  , ((0                 , xF86XK_RotateWindows  ), spawn "screenrotation.sh cycle_left")
+  , ((0                 , xF86XK_TaskPane       ), spawn "screenrotation.sh swap")
+  -- , ((0                 , xF86XK_ScreenSaver    ), spawn "xdotool key super+s")
+  -- , ((0                 , xF86XK_Launch1        ), spawn "xdotool key super+r")
+  -- Workspaces
+-- selectWindow def >>= (`whenJust` windows . S.focusWindow) >> myUpdateFocus
+  , ((myModMask                 , xK_numbersign ), selectWorkspace amberXPConfig)
+  , ((myModMask .|. shiftMask   , xK_plus       ), appendWorkspacePrompt amberXPConfig)
+  , ((myModMask                 , xK_plus       ), addLastWorkspace)
+  , ((myModMask                 , xK_minus      ), removeLastWorkspace)
+  ]
+  where
+    toggleTouchpad :: X ()
+    toggleTouchpad = do
+      KeyboardToggleState state <- XS.get
+      if state
+        then enableTouchpad
+        else disableTouchpad
+      XS.put $ KeyboardToggleState $ not state
+    enableTouchpad :: MonadIO m => m ()
+    enableTouchpad =  spawn "xinput --enable \"ELAN1201:00 04F3:3098 Touchpad\""
+                   *> spawn "xinput --enable \"AT Translated Set 2 keyboard\""
+                   *> spawn "notify-send 'touchpad enabled'"
+    disableTouchpad :: MonadIO m => m ()
+    disableTouchpad =  spawn "xinput --disable \"ELAN1201:00 04F3:3098 Touchpad\""
+                    *> spawn "xinput --disable \"AT Translated Set 2 keyboard\""
+                    *> spawn "notify-send 'touchpad disabled'"
+
+-- Needed for adding workspaces with automatic names
+-- {{{
+addLastWorkspace :: X ()
+addLastWorkspace = do
+    -- maybe use xdotool instead of extensible state?
+    -- workspaceLen <- liftIO $ (\t -> read t :: Int) <$> readProcess "xdotool" ["get_num_desktops"] []
+    workspaceLenString <- runProcessWithInput "xdotool" (["get_num_desktops"]) ""
+    let workspaceLen = read workspaceLenString :: Int
+    -- spawn $ format "notify-send \"Workspace length increased\" \"now at {0}\"" [show workspaceLen]
+    addWorkspace $ show $ workspaceLen + 1
+    return ()
+
+removeLastWorkspace :: X ()
+removeLastWorkspace = do
+    workspaceLenString <- runProcessWithInput "xdotool" (["get_num_desktops"]) ""
+    let workspaceLen = read workspaceLenString :: Int
+    -- remove old thumbnails
+    home <- liftIO getHomeDirectory
+    let thumbDir = home ++ "/.cache/"
+    files <- liftIO $ listDirectory thumbDir
+    let oldFiles = [ f | f <- sort files, "xmonad_workspace_thumbnail" `isPrefixOf` f ]
+    liftIO $ removeFile $ thumbDir ++ last oldFiles
+    removeWorkspaceByTag $ show $ workspaceLen
+    return ()
+-- }}}
+-- }}}
