@@ -3,6 +3,12 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+		screenrotate = {
+			url = "github:Quoteme/screenrotate";
+			inputs.nixpkgs.follows = "nixpkgs";
+		};
+		xmonad-workspace-preview.url = "github:Quoteme/xmonad-workspace-preview";
+		control_center.url = "github:Quoteme/control_center";
     flake-utils = {
       inputs.nixpkgs.follows = "nixpkgs";
       url = "github:numtide/flake-utils";
@@ -56,6 +62,16 @@
           src = ./src;
 
           buildInputs = with pkgs; [
+						xdotool
+						imagemagick
+						xorg.xinput
+						libnotify
+						polybar
+						brightnessctl
+						inputs.screenrotate.defaultPackage.x86_64-linux
+						inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
+						inputs.control_center.defaultPackage.x86_64-linux
+						pamixer
             (haskellPackages.ghcWithPackages (hpkgs: with hpkgs; [
               base
               xmonad
