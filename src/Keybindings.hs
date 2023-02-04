@@ -69,6 +69,7 @@ import System.Directory (getHomeDirectory, listDirectory, removeFile)
 import System.Environment (lookupEnv)
 import Utilities (selectMaximizeWindow)
 import Options
+import LaptopMode
 
 
 -- {{{ My own keybindings
@@ -180,6 +181,7 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
                                                                                   spawn "notify-send 'deleted current copy'")
   -- }}}
   -- {{{ Other stuff
+  , ("M-S-t"                   , addName "LaptopMode: toggle tablet mode" $ toggleTabletMode)
   , ("M-b"                     , addName "Statusbar: toggle" $ sendMessage ToggleStruts)
   , ("M-t"                     , addName "Window: unfloat" $ withFocused $ windows . S.sink)
   , ("M-,"                     , addName "Master: increase" $ sendMessage (IncMasterN 1))
