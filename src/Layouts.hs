@@ -37,7 +37,6 @@ import LaptopMode
 -- {{{ Navigation2DConfig
 myNavigation2DConfig = def { layoutNavigation = [
     ("myBSP", hybridOf sideNavigation lineNavigation ),
-    ("tabletmodeBSP", hybridOf sideNavigation lineNavigation ),
     ("myTabletMode", hybridOf sideNavigation lineNavigation )
   ] }
 -- }}}
@@ -54,9 +53,6 @@ myLayout = avoidStruts
           $ smartBorders
           $ borderResize
           emptyBSP
-    tabletmodeBSP = renamed [Replace "tabletmodeBSP"]
-                  $ noBorders
-                  $ windowSwitcherDecorationWithImageButtons shrinkText myTheme (draggingVisualizer myBSP)
     myTabletMode = renamed [Replace "myTabletMode"]
                 $ minimize
                 $ BW.boringWindows
