@@ -91,12 +91,14 @@
             						mkdir build
             						ln -sf $src/* build
             						ghc -o xmonad-luca Main.hs Utilities.hs -threaded -rtsopts -with-rtsopts=-N
-          '';
+												'';
           installPhase = ''
             						mkdir -p $out/bin
                         cp xmonad-luca $out/bin/xmonad-luca
             						chmod +x $out/bin/xmonad-luca
-          '';
+												cp ${xmonadctl}/bin/xmonadctl $out/bin/xmonadctl
+												chmod +x $out/bin/xmonadctl
+												'';
         };
       }
     );
