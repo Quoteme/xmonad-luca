@@ -96,10 +96,29 @@
             						mkdir -p $out/bin
                         cp xmonad-luca $out/bin/xmonad-luca
             						chmod +x $out/bin/xmonad-luca
-												cp ${xmonadctl}/bin/xmonadctl $out/bin/xmonadctl
-												chmod +x $out/bin/xmonadctl
 												'';
         };
+
+				packages.xmonad-luca-alldeps = pkgs.symlinkJoin {
+					name = "xmonad-luca-alldeps";
+					paths = with pkgs; [
+						packages.xmonad-luca
+						xdotool
+						polybar
+						brightnessctl
+						inputs.screenrotate.defaultPackage.x86_64-linux
+						inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
+						inputs.control_center.defaultPackage.x86_64-linux
+						pamixer
+						xmonadctl
+				  ];
+				
+				  nativeBuildInputs = [ pkgs.makeWrapper ];
+				  postBuild = ''
+				    wrapProgram $out/bin/binary \
+				    --prefix PATH : $out/bin
+				  '';
+				};
       }
     );
 }
