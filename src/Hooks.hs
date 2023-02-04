@@ -29,16 +29,18 @@ import XMonad
 import Thumbnail
 import Text.Format
 import Keybindings
+import LaptopMode
 
 -- {{{ The client events that xmonad is interested in
 myClientMask = focusChangeMask .|. clientMask def
 -- }}}
 
 -- {{{ Manage hooks
-myManageHook = composeAll [ appName =? "control_center" --> doRectFloat (S.RationalRect 0.65 0.05 0.325 0.45)
-                          , className =? "Onboard" --> doFloat
-                          , isDialog --> doCenterFloat
-                          ]
+myManageHook = composeAll
+  [ appName =? "control_center" --> doRectFloat (S.RationalRect 0.65 0.05 0.325 0.45)
+  , className =? "Onboard" --> doFloat
+  , isDialog --> doCenterFloat
+  ]
 -- }}}
 
 -- {{{ Event hook
@@ -59,8 +61,8 @@ myEventHook = focusOnMouseMove
                 defaultServerCommands "swap-right"         = windowSwap R False
                 defaultServerCommands "rotate"             = sendMessage Rotate
                 defaultServerCommands "layout-next"        = sendMessage NextLayout
-                defaultServerCommands "layout-tablet"      = sendMessage $ JumpToLayout "myTabletMode"
-                defaultServerCommands "layout-normal"      = sendMessage $ JumpToLayout "myBSP"
+                defaultServerCommands "layout-tablet"      = setLaptopMode TabletMode 
+                defaultServerCommands "layout-normal"      = setLaptopMode LaptopMode 
                 defaultServerCommands "layout-get"         = sendMessage ToggleStruts
                 defaultServerCommands "toggle-struts"      = sendMessage ToggleStruts
                 defaultServerCommands "select-to-maximize" = selectMaximizeWindow
