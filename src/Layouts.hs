@@ -44,8 +44,7 @@ myNavigation2DConfig = def { layoutNavigation = [
 
 -- {{{ My Layouts
 myLayout = avoidStruts
-         $   myBSP
-         ||| myTabletMode
+         myTabletMode
          ||| myFullscreen
   where
     -- TODO: add tabs to this layout
