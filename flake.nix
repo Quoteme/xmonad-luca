@@ -19,6 +19,12 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
+				xmonadctl = (pkgs.callPackage (pkgs.fetchFromGitHub {
+					owner = "quoteme";
+					repo = "xmonadctl";
+					rev = "v1.0";
+					sha256 = "1bjf3wnxsghfb64jji53m88vpin916yqlg3j0r83kz9k79vqzqxd";
+				}) {} );
       in
       rec {
         defaultApp = apps.xmonad-luca;
@@ -72,6 +78,7 @@
 						inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
 						inputs.control_center.defaultPackage.x86_64-linux
 						pamixer
+						xmonadctl
             (haskellPackages.ghcWithPackages (hpkgs: with hpkgs; [
               base
               xmonad
