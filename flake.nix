@@ -115,7 +115,7 @@
 				
 				  nativeBuildInputs = [ pkgs.makeWrapper ];
 				  postBuild = ''
-				    wrapProgram $out/bin/binary \
+				    wrapProgram $out/bin/xmonad-luca \
 				    --prefix PATH : $out/bin
 				  '';
 				};
