@@ -13,7 +13,6 @@ myFocusFollowsMouse         = True
 myClickJustFocuses          = True -- clicking to focus passes click to window?
 myBorderWidth :: Dimension
 myBorderWidth               = 3
--- set the alt key as the mod key
 myModMask                   = mod4Mask
 myWorkspaces                = map show [1..3]
 myNormalBorderColor         = "#0c0c0c"
