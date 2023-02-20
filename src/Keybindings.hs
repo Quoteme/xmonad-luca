@@ -70,6 +70,7 @@ import System.Environment (lookupEnv)
 import Utilities (selectMaximizeWindow)
 import Options
 import LaptopMode
+import XMonad.Layout.SubLayouts (pullGroup, GroupMsg (MergeAll, UnMerge), onGroup, pushGroup)
 
 
 -- {{{ My own keybindings
@@ -137,14 +138,6 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-C-<Down>"              , addName "Expand: down" $ sendMessage $ ExpandTowards D)
   , ("M-C-<Up>"                , addName "Expand: up" $ sendMessage $ ExpandTowards U)
   , ("M-C-<Right>"             , addName "Expand: right" $ sendMessage $ ExpandTowards R)
-  , ("M-M1-h"                  , addName "Expand: left" $ sendMessage $ ShrinkFrom L)
-  , ("M-M1-j"                  , addName "Expand: down" $ sendMessage $ ShrinkFrom D)
-  , ("M-M1-k"                  , addName "Expand: up" $ sendMessage $ ShrinkFrom U)
-  , ("M-M1-l"                  , addName "Expand: right" $ sendMessage $ ShrinkFrom R)
-  , ("M-M1-<Left>"             , addName "Expand: left" $ sendMessage $ ShrinkFrom L)
-  , ("M-M1-<Down>"             , addName "Expand: down" $ sendMessage $ ShrinkFrom D)
-  , ("M-M1-<Up>"               , addName "Expand: up" $ sendMessage $ ShrinkFrom U)
-  , ("M-M1-<Right>"            , addName "Expand: right" $ sendMessage $ ShrinkFrom R)
   -- }}}
   -- {{{ Splitting and moving
   , ("M-S-C-k"                 , addName "Split: next" $ sendMessage $ SplitShift Next )
@@ -160,6 +153,26 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-S-n"                   , addName "BSP: move node" $ sendMessage MoveNode)
   , ("M-a"                     , addName "BSP: balance" $ sendMessage Balance)
   , ("M-S-a"                   , addName "BSP: equalize" $ sendMessage Equalize)
+  -- }}}
+  -- {{{ Sublayouts
+  , ("M-M1-h"                  , addName "Sublayout: left" $ sendMessage $ pushGroup L)
+  , ("M-M1-j"                  , addName "Sublayout: down" $ sendMessage $ pushGroup D)
+  , ("M-M1-k"                  , addName "Sublayout: up" $ sendMessage $ pushGroup U)
+  , ("M-M1-l"                  , addName "Sublayout: right" $ sendMessage $ pushGroup R)
+  , ("M-M1-<Left>"             , addName "Sublayout: left" $ sendMessage $ pullGroup L)
+  , ("M-M1-<Down>"             , addName "Sublayout: down" $ sendMessage $ pullGroup D)
+  , ("M-M1-<Up>"               , addName "Sublayout: up" $ sendMessage $ pullGroup U)
+  , ("M-M1-<Right>"            , addName "Sublayout: right" $ sendMessage $ pullGroup R)
+  , ("M-M1-m"                  , addName "Sublayout: merge all" $ withFocused (sendMessage . MergeAll ))
+  , ("M-M1-u"                  , addName "Sublayout: unmerge" $ withFocused (sendMessage . UnMerge ))
+  , ("M-M1-."                  , addName "Sublayout: focus up" $ do
+      spawn "notify-send \"focus up\""
+      onGroup S.focusUp'
+  )
+  , ("M-M1-,"                  , addName "Sublayout: focus down" $ do
+    spawn "notify-send \"focus down\""
+    onGroup S.focusDown'
+  )
   -- }}}
   -- {{{ (Un-)Hiding
   , ("M-<Backspace>"           , addName "Window: hide"                         $ withFocused hideWindow *> spawn "notify-send \"hidden a window\"")

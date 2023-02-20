@@ -33,6 +33,8 @@ import XMonad.Operations (windows)
 import Theme
 import Icons
 import LaptopMode
+import XMonad.Layout.Tabbed (simpleTabbed)
+import XMonad.Layout.SubLayouts (subLayout, subTabbed)
 
 -- {{{ Navigation2DConfig
 myNavigation2DConfig = def { layoutNavigation = [
@@ -52,6 +54,7 @@ myLayout = avoidStruts
           $ layoutHints
           $ smartBorders
           $ borderResize
+          $ subLayout [] simpleTabbed
           emptyBSP
     myTabletMode = renamed [Replace "myTabletMode"]
                 $ minimize
