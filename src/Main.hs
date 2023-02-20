@@ -65,7 +65,8 @@ myStartupHook = do
 
 -- Main
 -- {{{
-main =
+main = do
+  putStrLn "Starting XMonad"
   getDirectories
     >>= launch
       ( docks $

@@ -34,6 +34,24 @@
           type = "app";
           program = "${defaultPackage}/bin/xmonad-luca";
         };
+				# create a defualt devshell
+				devShell = pkgs.mkShell {
+					buildInputs = with pkgs; [
+						(pkgs.python310.withPackages (ps: with ps; [
+							PyVirtualDisplay
+            ]))
+						(haskellPackages.ghcWithPackages (hpkgs: with hpkgs; [
+              base
+							# TODO: add the floating-window-decorations patch from:
+							# https://github.com/xmonad/xmonad/issues/355
+              xmonad
+              xmonad-contrib
+							xmonad-extras
+							text-format-simple
+            ]))
+					];
+				};
+
         packages.xmonad-luca-test = pkgs.stdenv.mkDerivation {
           name = "xmonad-luca-test";
           src = ./test;
@@ -43,6 +61,7 @@
             (pkgs.python310.withPackages (ps: with ps; [
 							PyVirtualDisplay
             ]))
+						pkgs.xorg.xmessage
           ];
           dontBuild = true;
           installPhase = ''
@@ -81,6 +100,8 @@
 						xmonadctl
             (haskellPackages.ghcWithPackages (hpkgs: with hpkgs; [
               base
+							# TODO: add the floating-window-decorations patch from:
+							# https://github.com/xmonad/xmonad/issues/355
               xmonad
               xmonad-contrib
 							xmonad-extras

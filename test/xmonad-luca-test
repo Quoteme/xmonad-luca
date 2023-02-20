@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 from easyprocess import EasyProcess
-from pyvirtualdisplay import Display
+from pyvirtualdisplay.display import Display
+import subprocess
 import os
 
 current_dir = os.path.dirname(__file__)
@@ -13,5 +14,12 @@ print('starting test display')
 with Display(visible=True) as disp:
 	print("test-display started")
 	with EasyProcess([current_dir+"/xmonad-luca"]) as proc:
+		print("xmonad-luca started")
 		proc.wait()
+		print("writing stdout to test_stdout.txt")
+		with open("test_stdout.txt", "w") as f:
+			f.write(proc.stdout if proc.stdout else "")
+		print("writing stderr to test_stderr.txt")
+		with open("test_stderr.txt", "w") as f:
+			f.write(proc.stderr if proc.stderr else "")
 # vim: tabstop=2 shiftwidth=2 noexpandtab ft=python
