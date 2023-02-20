@@ -1,3 +1,7 @@
 .sessions/*
 
 .sessions/
+
+test_stderr.txt
+
+test_stdout.txt
