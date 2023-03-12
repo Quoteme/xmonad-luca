@@ -45,7 +45,7 @@ import XMonad.Layout.Hidden
 import XMonad.Actions.UpdatePointer (updatePointer)
 import XMonad.Layout.Decoration
 import XMonad.Actions.OnScreen (viewOnScreen)
-import XMonad.Actions.DynamicWorkspaces (appendWorkspacePrompt, removeEmptyWorkspace, selectWorkspace, withNthWorkspace, addWorkspace, removeWorkspace, removeWorkspaceByTag)
+import XMonad.Actions.DynamicWorkspaces (appendWorkspacePrompt, removeEmptyWorkspace, selectWorkspace, withNthWorkspace, addWorkspace, removeWorkspace, removeWorkspaceByTag, renameWorkspace)
 import XMonad.Prompt (amberXPConfig)
 import XMonad.Hooks.Rescreen
 import XMonad.Layout.Magnifier (magnifier)
@@ -279,6 +279,7 @@ myAdditionalKeys config = additionalKeys config
   -- Workspaces
 -- selectWindow def >>= (`whenJust` windows . S.focusWindow) >> myUpdateFocus
   , ((myModMask                 , xK_numbersign ), selectWorkspace amberXPConfig)
+  , ((myModMask .|. shiftMask   , xK_numbersign ), renameWorkspace amberXPConfig)
   , ((myModMask .|. shiftMask   , xK_plus       ), appendWorkspacePrompt amberXPConfig)
   , ((myModMask                 , xK_plus       ), addLastWorkspace)
   , ((myModMask                 , xK_minus      ), removeLastWorkspace)
