@@ -45,7 +45,6 @@
 					xfce.xfce4-mailwatch-plugin
 					xfce.xfce4-whiskermenu-plugin
 					xfce.xfce4-windowck-plugin
-					deadd-notification-center
 					brightnessctl
 					inputs.screenrotate.defaultPackage.x86_64-linux
 					inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
