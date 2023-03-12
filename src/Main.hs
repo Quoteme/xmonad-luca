@@ -35,6 +35,10 @@ import Thumbnail
 -- Startup hook
 -- {{{
 myStartupHook = do
+  -- spawnOnce "polybar top"
+  spawnOnce "xfce4-panel"
+  setWMName "LG3D"
+  adjustEventInput
   -- only call the function, when the environment variable "XMONAD_TEST_MODE" is set
   test_mode <- liftIO $ lookupEnv "XMONAD_TEST_MODE"
   if test_mode == Just "1"
@@ -59,9 +63,6 @@ myStartupHook = do
       spawnOnce "touchegg &"
       spawnOnce "rclone --vfs-cache-mode writes mount \"OnedriveHHU\": ~/OneDrive"
       liftIO removeOldThumbnails
-  spawnOnce "polybar top"
-  setWMName "LG3D"
-  adjustEventInput
 -- }}}
 
 -- Main

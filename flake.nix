@@ -25,6 +25,43 @@
 					rev = "v1.0";
 					sha256 = "1bjf3wnxsghfb64jji53m88vpin916yqlg3j0r83kz9k79vqzqxd";
 				}) {} );
+				dependencies = with pkgs; [
+					xdotool
+					imagemagick
+					xorg.xinput
+					libnotify
+					xfce.xfce4-panel
+					xfce.xfce4-notifyd
+					xfce.xfce4-panel-profiles
+					xfce.xfce4-cpugraph-plugin
+					xfce.xfce4-sensors-plugin
+					xfce.xfce4-pulseaudio-plugin
+					xfce.xfce4-battery-plugin
+					xfce.xfce4-clipman-plugin
+					xfce.xfce4-datetime-plugin
+					xfce.xfce4-dockbarx-plugin
+					xfce.xfce4-fsguard-plugin
+					xfce.xfce4-genmon-plugin
+					xfce.xfce4-mailwatch-plugin
+					xfce.xfce4-whiskermenu-plugin
+					xfce.xfce4-windowck-plugin
+					deadd-notification-center
+					brightnessctl
+					inputs.screenrotate.defaultPackage.x86_64-linux
+					inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
+					inputs.control_center.defaultPackage.x86_64-linux
+					pamixer
+					xmonadctl
+					(haskellPackages.ghcWithPackages (hpkgs: with hpkgs; [
+						base
+							# TODO: add the floating-window-decorations patch from:
+							# https://github.com/xmonad/xmonad/issues/355
+							xmonad
+							xmonad-contrib
+							xmonad-extras
+							text-format-simple
+						]))
+					];
       in
       rec {
         defaultApp = apps.xmonad-luca;
@@ -62,7 +99,7 @@
 							PyVirtualDisplay
             ]))
 						pkgs.xorg.xmessage
-          ];
+          ] ++ dependencies;
           dontBuild = true;
           installPhase = ''
             						mkdir -p $out/bin
@@ -86,28 +123,7 @@
           version = "1.0";
           src = ./src;
 
-          buildInputs = with pkgs; [
-						xdotool
-						imagemagick
-						xorg.xinput
-						libnotify
-						polybar
-						brightnessctl
-						inputs.screenrotate.defaultPackage.x86_64-linux
-						inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
-						inputs.control_center.defaultPackage.x86_64-linux
-						pamixer
-						xmonadctl
-            (haskellPackages.ghcWithPackages (hpkgs: with hpkgs; [
-              base
-							# TODO: add the floating-window-decorations patch from:
-							# https://github.com/xmonad/xmonad/issues/355
-              xmonad
-              xmonad-contrib
-							xmonad-extras
-							text-format-simple
-            ]))
-          ];
+          buildInputs = dependencies;
           buildPhase = ''
             						mkdir build
             						ln -sf $src/* build
@@ -124,15 +140,7 @@
 					name = "xmonad-luca-alldeps";
 					paths = with pkgs; [
 						packages.xmonad-luca
-						xdotool
-						polybar
-						brightnessctl
-						inputs.screenrotate.defaultPackage.x86_64-linux
-						inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
-						inputs.control_center.defaultPackage.x86_64-linux
-						pamixer
-						xmonadctl
-				  ];
+					] ++ dependencies;
 				
 				  nativeBuildInputs = [ pkgs.makeWrapper ];
 				  postBuild = ''
