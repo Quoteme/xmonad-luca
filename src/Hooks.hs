@@ -48,7 +48,7 @@ myManageHook = composeAll
 myEventHook = focusOnMouseMove
             <+> hintsEventHook
             <+> windowedFullscreenFixEventHook
-            <+> dunstOnTop
+            <+> notificationsOnTop
             <+> serverModeEventHookF "XMONAD_COMMAND" defaultServerCommands
             <+> serverModeEventHookF "LAYOUT" layoutServerCommands
             <+> serverModeEventHookF "WINDOW" windowServerCommands
@@ -85,15 +85,17 @@ myEventHook = focusOnMouseMove
                 -- | switch to workspace `workspacename`
                 workspaceServerCommands :: String -> X ()
                 workspaceServerCommands workspacename = windows $ S.greedyView workspacename
-                dunstOnTop :: Event -> X All
-                dunstOnTop (AnyEvent {ev_event_type = et}) = do
+                notificationsOnTop :: Event -> X All
+                notificationsOnTop (AnyEvent {ev_event_type = et}) = do
                   when (et == focusOut) $ do
                     spawn "xdotool windowraise `xdotool search --all --name Dunst`"
+                    spawn "xdotool windowfocus `xdotool search --all --name xfce4-notifyd`"
                   return $ All True
-                dunstOnTop (FocusChangeEvent {}) = do
+                notificationsOnTop (FocusChangeEvent {}) = do
                   spawn "xdotool windowraise `xdotool search --all --name Dunst`"
+                  spawn "xdotool windowraise `xdotool search --all --name xfce4-notifyd`"
                   return $ All True
-                dunstOnTop ev = return $ All True
+                notificationsOnTop ev = return $ All True
 -- }}}
 
 -- {{{ Log hook
