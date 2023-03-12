@@ -254,10 +254,8 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
                        *> spawn "notify-send 'Brightness raised'"
     lowerAudio :: MonadIO m => m ()
     lowerAudio =  spawn "pamixer --increase 5"
-                       *> spawn "notify-send -a \"changeVolume\" -u low -i /etc/nixos/xmonad/icon/high-volume.png \"volume up\""
     raiseAudio :: MonadIO m => m ()
     raiseAudio =  spawn "pamixer --decrease 5"
-                       *> spawn "notify-send -a \"changeVolume\" -u low -i /etc/nixos/xmonad/icon/volume-down.png \"volume down\""
     myUpdateFocus = updatePointer (0.5, 0.5) (0.1, 0.1)
   -- }}}
 -- }}}
