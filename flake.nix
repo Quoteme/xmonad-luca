@@ -45,6 +45,9 @@
 					xfce.xfce4-mailwatch-plugin
 					xfce.xfce4-whiskermenu-plugin
 					xfce.xfce4-windowck-plugin
+					(writeShellScriptBin "launch-notification-manager" ''
+						${pkgs.xfce.xfce4-notifyd}/lib/xfce4/notifyd/xfce4-notifyd
+					'')
 					brightnessctl
 					inputs.screenrotate.defaultPackage.x86_64-linux
 					inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux

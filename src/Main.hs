@@ -36,6 +36,7 @@ import Thumbnail
 -- {{{
 myStartupHook = do
   -- spawnOnce "polybar top"
+  spawnOnce "launch-notification-manager"
   spawnOnce "xfce4-panel"
   setWMName "LG3D"
   adjustEventInput
