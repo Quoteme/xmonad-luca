@@ -38,6 +38,7 @@ myClientMask = focusChangeMask .|. clientMask def
 -- {{{ Manage hooks
 myManageHook = composeAll
   [ appName =? "control_center" --> doRectFloat (S.RationalRect 0.65 0.05 0.325 0.45)
+  , appName =? "Wrapper-2.0" --> doRectFloat (S.RationalRect 0.1 0.05 0.325 0.45)
   , className =? "Onboard" --> doFloat
   , isDialog --> doCenterFloat
   ]
