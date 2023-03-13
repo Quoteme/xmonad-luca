@@ -36,7 +36,8 @@ import Thumbnail
 -- {{{
 myStartupHook = do
   -- spawnOnce "polybar top"
-  spawnOnce "launch-notification-manager && xfce4-panel"
+  spawnOnce "launch-notification-manager"
+  spawnOnce "xfce4-panel --disable-wm-check"
   setWMName "LG3D"
   adjustEventInput
   -- only call the function, when the environment variable "XMONAD_TEST_MODE" is set
