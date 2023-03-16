@@ -36,9 +36,6 @@ import Thumbnail
 -- {{{
 myStartupHook = do
   -- spawnOnce "polybar top"
-  spawnOnce "launch-notification-manager"
-  spawnOnce "xfce4-panel --disable-wm-check"
-  setWMName "LG3D"
   adjustEventInput
   -- only call the function, when the environment variable "XMONAD_TEST_MODE" is set
   test_mode <- liftIO $ lookupEnv "XMONAD_TEST_MODE"
@@ -64,44 +61,49 @@ myStartupHook = do
       spawnOnce "touchegg &"
       spawnOnce "rclone --vfs-cache-mode writes mount \"OnedriveHHU\": ~/OneDrive"
       liftIO removeOldThumbnails
+  spawnOnce "launch-notification-manager"
+  spawnOnce "xfce4-panel --disable-wm-check"
+  setWMName "LG3D"
 -- }}}
 
 -- Main
 -- {{{
 main = do
   putStrLn "Starting XMonad"
+  -- set myTerminal to the value of the environment variable "TERMINAL"
+  -- if the environment variable is not set, use "alacritty"
+  myTerminal <- lookupEnv "TERMINAL" >>= return . maybe "alacritty" id
   getDirectories
     >>= launch
-      ( docks $
-          ewmh $
-            myAdditionalKeys $
-              addDescrKeys ((myModMask, xK_F1), xMessage) myKeys $
-                withNavigation2DConfig myNavigation2DConfig $
-                  rescreenHook
-                    def
-                      { randrChangeHook = myRandrChangeHook,
-                        afterRescreenHook = myAfterRescreenHook
-                      }
-                    $ def
-                      { -- simple stuff
-                        terminal = myTerminal,
-                        focusFollowsMouse = myFocusFollowsMouse,
-                        clickJustFocuses = myClickJustFocuses,
-                        borderWidth = myBorderWidth,
-                        modMask = myModMask,
-                        workspaces = myWorkspaces,
-                        normalBorderColor = myNormalBorderColor,
-                        focusedBorderColor = myFocusedBorderColor,
-                        -- mouse bindings
-                        mouseBindings = myMouseBindings,
-                        -- hooks, layouts
-                        layoutHook = myLayout,
-                        manageHook = myManageHook,
-                        handleEventHook = myEventHook,
-                        startupHook = myStartupHook,
-                        clientMask = myClientMask,
-                        logHook = myLogHook
-                      }
+      ( docks
+      $ ewmh
+      $ myAdditionalKeys 
+      $ addDescrKeys ((myModMask, xK_F1), xMessage) myKeys
+      $ withNavigation2DConfig myNavigation2DConfig
+      $ rescreenHook def
+        { randrChangeHook = myRandrChangeHook
+        , afterRescreenHook = myAfterRescreenHook }
+      $ def
+        { -- simple stuff
+          -- set the terminal variable 
+          terminal = myTerminal,
+          focusFollowsMouse = myFocusFollowsMouse,
+          clickJustFocuses = myClickJustFocuses,
+          borderWidth = myBorderWidth,
+          modMask = myModMask,
+          workspaces = myWorkspaces,
+          normalBorderColor = myNormalBorderColor,
+          focusedBorderColor = myFocusedBorderColor,
+          -- mouse bindings
+          mouseBindings = myMouseBindings,
+          -- hooks, layouts
+          layoutHook = myLayout,
+          manageHook = myManageHook,
+          handleEventHook = myEventHook,
+          startupHook = myStartupHook,
+          clientMask = myClientMask,
+          logHook = myLogHook
+        }
       )
 
 -- }}}

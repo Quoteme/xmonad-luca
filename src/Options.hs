@@ -8,7 +8,6 @@ import XMonad.Layout.Decoration
 import Graphics.X11
 import XMonad.Layout.ImageButtonDecoration
 
-myTerminal                  = "st"
 myFocusFollowsMouse         = True
 myClickJustFocuses          = True -- clicking to focus passes click to window?
 myBorderWidth :: Dimension
