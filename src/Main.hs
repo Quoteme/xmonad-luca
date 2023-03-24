@@ -62,7 +62,8 @@ myStartupHook = do
       spawnOnce "rclone --vfs-cache-mode writes mount \"OnedriveHHU\": ~/OneDrive"
       liftIO removeOldThumbnails
   spawnOnce "launch-notification-manager"
-  spawnOnce "xfce4-panel --disable-wm-check"
+  spawnOnce "xfce4-panel --disable-wm-check > ~/xfce4log.txt"
+  spawnOnce "xhost +si:localuser:$USER"
   setWMName "LG3D"
 -- }}}
 

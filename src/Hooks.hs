@@ -43,6 +43,7 @@ myManageHook = composeAll
   , className =? "Wrapper-2.0" --> doCenterFloat -- Center the WhiskerMenu
   , appName =? "Whisker Menu" --> doRectFloat (S.RationalRect 0.1 0.05 0.325 0.45)
   , className =? "Onboard" --> doFloat
+  , className =? ".blueman-manager-wrapped" --> doRectFloat (S.RationalRect 0.65 0.05 0.325 0.45)
   , isDialog --> doCenterFloat
   ]
 -- }}}

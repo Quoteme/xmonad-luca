@@ -53,7 +53,7 @@ myLayout = avoidStruts
           $ hiddenWindows
           $ layoutHints
           $ smartBorders
-          $ borderResize
+          $ borderResizeNear 12
           $ subLayout [] simpleTabbed
           emptyBSP
     myTabletMode = renamed [Replace "myTabletMode"]

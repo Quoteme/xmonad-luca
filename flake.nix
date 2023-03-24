@@ -13,12 +13,23 @@
       inputs.nixpkgs.follows = "nixpkgs";
       url = "github:numtide/flake-utils";
     };
+		# fetch the latest version of xmonad-contrib from github
+		xmonad-contrib = {
+			url = "github:xmonad/xmonad-contrib";
+			# inputs.nixpkgs.follows = "nixpkgs";
+		};
+
   };
 
   outputs = { self, nixpkgs, flake-utils, ... }@inputs:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
+				pkgs = import nixpkgs {
+					inherit system;
+					overlays = [
+						inputs.xmonad-contrib.overlay
+					];
+				};
 				xmonadctl = (pkgs.callPackage (pkgs.fetchFromGitHub {
 					owner = "quoteme";
 					repo = "xmonadctl";
@@ -48,6 +59,7 @@
 					(writeShellScriptBin "launch-notification-manager" ''
 						${pkgs.xfce.xfce4-notifyd}/lib/xfce4/notifyd/xfce4-notifyd
 					'')
+					xorg.xhost
 					brightnessctl
 					inputs.screenrotate.defaultPackage.x86_64-linux
 					inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
