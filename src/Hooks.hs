@@ -132,7 +132,7 @@ myAfterRescreenHook = do
 
 myRandrChangeHook :: X ()
 myRandrChangeHook = do
-  spawn "notify-send 'Rescreen' 'screen changed'"
+  spawn "nitrogen --restore"
   spawn "xinput --map-to-output 'ELAN9008:00 04F3:2C82' eDP"
   spawn "xinput --map-to-output 'ELAN9008:00 04F3:2C82 Stylus Pen (0)' eDP"
   spawn "xinput --map-to-output 'ELAN9008:00 04F3:2C82 Stylus Eraser (0)' eDP"
