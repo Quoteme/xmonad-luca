@@ -105,7 +105,8 @@ myEventHook = focusOnMouseMove
 -- {{{ Log hook
 myLogHook :: X ()
 myLogHook = do
-  thumbnailHook
+  -- thumbnailhook disabled, because I do not use it that much (maybe this saves battery?)
+  -- thumbnailHook
   return ()
   where
     thumbnailHook :: X ()
