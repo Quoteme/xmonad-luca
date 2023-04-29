@@ -179,7 +179,6 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-S-<Backspace>"         , addName "Window: unhide"                       $ popOldestHiddenWindow >> myUpdateFocus)
   , ("M-S-o"                   , addName "Window: unminimize menu"              $ selectMaximizeWindow)
   , ("M-C-m"                   , addName "Window: maximize"                     $ withFocused (sendMessage . maximizeRestore))
-  , ("M-C-m"                   , addName "Window: maximize"                     $ withFocused (sendMessage . maximizeRestore))
   , ("M-c"                     , addName "Window: copy to all other workspaces" $ do
                                                                                   spawn $  "notify-send "
                                                                                         ++ "'window copied to all workspaces' "
