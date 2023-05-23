@@ -58,7 +58,7 @@ myStartupHook = do
       liftIO removeOldThumbnails
   spawnOnce "~/.autostart.sh"
   spawnOnce "launch-notification-manager"
-  spawnOnce "xfce4-panel --disable-wm-check > ~/xfce4log.txt"
+  spawnOnce "xfce4-panel --disable-wm-check"
   spawnOnce "xhost +si:localuser:$USER"
   setWMName "LG3D"
 -- }}}

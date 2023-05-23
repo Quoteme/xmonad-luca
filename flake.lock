@@ -7,11 +7,11 @@
         "screenrotate": "screenrotate"
       },
       "locked": {
-        "lastModified": 1680524498,
-        "narHash": "sha256-u0OtcAxzPgQWBjJtgjNeFBnuSnQQaiPZKB5m3YsCji0=",
+        "lastModified": 1684869598,
+        "narHash": "sha256-QWeykqsWiEziP4j1c7tBqYJVthW5q0T/nnMh2naa/Mk=",
         "owner": "Quoteme",
         "repo": "control_center",
-        "rev": "389232f966e7c32a453b9ceaf722bd906a527da2",
+        "rev": "3281cfd566d15ed8cb474f377f2cf6a87b61e65c",
         "type": "github"
       },
       "original": {
