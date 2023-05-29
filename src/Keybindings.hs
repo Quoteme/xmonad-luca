@@ -242,16 +242,12 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
     -- {{{
     lowerMonBrigthness :: MonadIO m => m ()
     lowerMonBrigthness =  spawn "brightnessctl set 5%-"
-                       *> spawn "notify-send 'Brightness lowered'"
     raiseMonBrigthness :: MonadIO m => m ()
     raiseMonBrigthness =  spawn "brightnessctl set 5%+"
-                       *> spawn "notify-send 'Brightness raised'"
     lowerKbdBrigthness :: MonadIO m => m ()
     lowerKbdBrigthness =  spawn "brightnessctl --device=\"asus::kbd_backlight\" set 1-"
-                       *> spawn "notify-send 'Brightness lowered'"
     raiseKbdBrigthness :: MonadIO m => m ()
     raiseKbdBrigthness =  spawn "brightnessctl --device=\"asus::kbd_backlight\" set 1+"
-                       *> spawn "notify-send 'Brightness raised'"
     lowerAudio :: MonadIO m => m ()
     lowerAudio =  spawn "pamixer --increase 5"
     raiseAudio :: MonadIO m => m ()
