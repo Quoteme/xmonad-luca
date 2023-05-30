@@ -127,6 +127,7 @@ myLogHook = do
 -- {{{ Screen / rander change hooks
 myAfterRescreenHook :: X ()
 myAfterRescreenHook = do
+  spawn "nitrogen --restore"
   spawn "xinput --map-to-output 'ELAN9008:00 04F3:2C82' eDP"
   spawn "xinput --map-to-output 'ELAN9008:00 04F3:2C82 Stylus Pen (0)' eDP"
   spawn "xinput --map-to-output 'ELAN9008:00 04F3:2C82 Stylus Eraser (0)' eDP"
