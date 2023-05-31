@@ -149,7 +149,9 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-C-r"                   , addName "BSP: rotate right around parent" $ myUpdateFocus <> sendMessage RotateR)
   , ("M-s"                     , addName "BSP: swap" $ myUpdateFocus <> sendMessage Swap)
   , ("M-n"                     , addName "BSP: focus parent" $ myUpdateFocus <> sendMessage FocusParent)
-  , ("M-C-n"                   , addName "BSP: select node" $ sendMessage SelectNode)
+  , ("M-C-n"                   , addName "BSP: cut/select node" $ sendMessage SelectNode)
+  , ("M-x"                     , addName "BSP: cut/select node" $ sendMessage SelectNode)
+  , ("M-p"                     , addName "BSP: paste/move node" $ sendMessage MoveNode)
   , ("M-S-n"                   , addName "BSP: move node" $ sendMessage MoveNode)
   , ("M-a"                     , addName "BSP: balance" $ sendMessage Balance)
   , ("M-S-a"                   , addName "BSP: equalize" $ sendMessage Equalize)
@@ -222,7 +224,7 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("<XF86Launch4>"           , addName "Power profile: cycle" $ spawn "powerprofilesctl-cycle")
   -- }}}
   -- {{{ Workspace keys
-  , ("M-p"                     , addName "Workspace: preview" $ spawn "xmonad-workspace-preview")
+  , ("M-S-p"                   , addName "Workspace: preview" $ spawn "xmonad-workspace-preview")
   ] ^++^
   (  [ ("M-"   ++ show n, withNthWorkspace S.greedyView (n-1)) | n <- [0..9] ]
   ++ [ ("M-S-" ++ show n, withNthWorkspace S.shift (n-1)) | n <- [0..9] ]
