@@ -13,6 +13,11 @@
 -- {{{
 -- for some fullscreen events, also for xcomposite in obs.
 
+import Hooks
+import Keybindings
+import Layouts
+import Mousebindings
+import Options
 import System.Environment (lookupEnv)
 import XMonad
 import XMonad.Actions.Navigation2D
