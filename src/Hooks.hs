@@ -59,20 +59,21 @@ myEventHook = focusOnMouseMove
             <+> serverModeEventHookF "WORKSPACE" workspaceServerCommands
               where
                 defaultServerCommands :: String -> X ()
-                defaultServerCommands "menu"               = windowMenu
-                defaultServerCommands "swap-up"            = windowSwap U False
-                defaultServerCommands "swap-down"          = windowSwap D False
-                defaultServerCommands "swap-left"          = windowSwap L False
-                defaultServerCommands "swap-right"         = windowSwap R False
-                defaultServerCommands "rotate"             = sendMessage Rotate
-                defaultServerCommands "layout-next"        = sendMessage NextLayout
-                defaultServerCommands "layout-tablet"      = setLaptopMode TabletMode 
-                defaultServerCommands "layout-normal"      = setLaptopMode LaptopMode 
-                defaultServerCommands "layout-get"         = sendMessage ToggleStruts
-                defaultServerCommands "toggle-struts"      = sendMessage ToggleStruts
-                defaultServerCommands "select-to-maximize" = selectMaximizeWindow
-                defaultServerCommands "workspace-add"      = Keybindings.addLastWorkspace
-                defaultServerCommands "workspace-remove"   = Keybindings.removeLastWorkspace
+                defaultServerCommands "menu"                 = windowMenu
+                defaultServerCommands "swap-up"              = windowSwap U False
+                defaultServerCommands "swap-down"            = windowSwap D False
+                defaultServerCommands "swap-left"            = windowSwap L False
+                defaultServerCommands "swap-right"           = windowSwap R False
+                defaultServerCommands "rotate"               = sendMessage Rotate
+                defaultServerCommands "layout-next"          = sendMessage NextLayout
+                defaultServerCommands "layout-tablet"        = setLaptopMode TabletMode 
+                defaultServerCommands "layout-tablet-toggle" = toggleTabletMode
+                defaultServerCommands "layout-normal"        = setLaptopMode LaptopMode 
+                defaultServerCommands "layout-get"           = sendMessage ToggleStruts -- FIXME:
+                defaultServerCommands "toggle-struts"        = sendMessage ToggleStruts
+                defaultServerCommands "select-to-maximize"   = selectMaximizeWindow
+                defaultServerCommands "workspace-add"        = Keybindings.addLastWorkspace
+                defaultServerCommands "workspace-remove"     = Keybindings.removeLastWorkspace
                 layoutServerCommands :: String -> X ()
                 layoutServerCommands layout = sendMessage $ JumpToLayout layout
                 windowServerCommands :: String -> X ()
