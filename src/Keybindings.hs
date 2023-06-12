@@ -70,7 +70,7 @@ import System.Environment (lookupEnv)
 import Utilities (selectMaximizeWindow)
 import Options
 import LaptopMode
-import XMonad.Layout.SubLayouts (pullGroup, GroupMsg (MergeAll, UnMerge), onGroup, pushGroup)
+import XMonad.Layout.SubLayouts (pullGroup, GroupMsg (MergeAll, UnMerge), onGroup, pushGroup, pushWindow, pullWindow)
 
 
 -- {{{ My own keybindings
@@ -88,9 +88,8 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   -- {{{ 🚀 Launch Programs
   [ ("M-<Return>"              , addName "Spawn Terminal" $ spawn $ terminal config)
   , ("M-d"                     , addName "Open program launcher" $ spawn "rofi -show combi -show-icons")
-  , ("M-w"                     , addName "Search open window" $ spawn "rofi -show window")
+  , ("M-S-w"                   , addName "Search open window" $ spawn "rofi -show window")
   , ("M-e"                     , addName "Open emoji selector" $ spawn "rofimoji")
-  , ("M-S-w"                   , addName "Open network settings" $ spawn "networkmanager_dmenu")
   , ("M-S-s"                   , addName "Screenshot" $ spawn "flameshot gui")
   , ("M-S-C-s"                 , addName "Simple screenshot" $ spawn "maim -su | xclip -selection clipboard -t image/png")
   , ("M-S-q"                   , addName "Kill window" $ kill)
@@ -104,8 +103,8 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-C-S-<Tab>"             , addName "WindowStack: swap previous" $ windows S.swapUp    >> myUpdateFocus)
   -- }}}
   -- {{{ 🔎 Easymotion
-  , ("M-f"                     , addName "Easymotion: focus" $ selectWindow def >>= (`whenJust` windows . S.focusWindow) >> myUpdateFocus)
-  , ("M-C-f"                   , addName "Easymotion: kill" $ selectWindow def >>= (`whenJust` killWindow))
+  , ("M-m"                     , addName "Easymotion: focus" $ selectWindow def >>= (`whenJust` windows . S.focusWindow) >> myUpdateFocus)
+  , ("M-C-m"                   , addName "Easymotion: kill" $ selectWindow def >>= (`whenJust` killWindow))
   -- }}}
   -- {{{ 🏃 Directional Focus Movement
   , ("M-h"                     , addName "Focus: left"   $ windowGo L False      >> myUpdateFocus)
@@ -116,7 +115,7 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-<Down>"                , addName "Focus: down"   $ windowGo D False      >> myUpdateFocus)
   , ("M-<Up>"                  , addName "Focus: up"     $ windowGo U False      >> myUpdateFocus)
   , ("M-<Right>"               , addName "Focus: right"  $ windowGo R False      >> myUpdateFocus)
-  , ("M-m"                     , addName "Focus: master" $ windows S.focusMaster >> myUpdateFocus)
+  -- , ("M-m"                     , addName "Focus: master" $ windows S.focusMaster >> myUpdateFocus)
   -- }}}
   -- {{{ 🔀 Directional Window Movement
   , ("M-S-h"                   , addName "Swap: left"   $ windowSwap L False   >> myUpdateFocus)
@@ -148,23 +147,33 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-S-r"                   , addName "BSP: rotate left around parent" $ myUpdateFocus <> sendMessage RotateL)
   , ("M-C-r"                   , addName "BSP: rotate right around parent" $ myUpdateFocus <> sendMessage RotateR)
   , ("M-s"                     , addName "BSP: swap" $ myUpdateFocus <> sendMessage Swap)
-  , ("M-n"                     , addName "BSP: focus parent" $ myUpdateFocus <> sendMessage FocusParent)
-  , ("M-C-n"                   , addName "BSP: cut/select node" $ sendMessage SelectNode)
+  , ("M-u"                     , addName "BSP: focus parent" $ myUpdateFocus <> sendMessage FocusParent)
   , ("M-x"                     , addName "BSP: cut/select node" $ sendMessage SelectNode)
   , ("M-p"                     , addName "BSP: paste/move node" $ sendMessage MoveNode)
-  , ("M-S-n"                   , addName "BSP: move node" $ sendMessage MoveNode)
   , ("M-a"                     , addName "BSP: balance" $ sendMessage Balance)
   , ("M-S-a"                   , addName "BSP: equalize" $ sendMessage Equalize)
   -- }}}
   -- {{{ Sublayouts
-  , ("M-M1-h"                  , addName "Sublayout: left" $ sendMessage $ pushGroup L)
-  , ("M-M1-j"                  , addName "Sublayout: down" $ sendMessage $ pushGroup D)
-  , ("M-M1-k"                  , addName "Sublayout: up" $ sendMessage $ pushGroup U)
-  , ("M-M1-l"                  , addName "Sublayout: right" $ sendMessage $ pushGroup R)
-  , ("M-M1-<Left>"             , addName "Sublayout: left" $ sendMessage $ pullGroup L)
-  , ("M-M1-<Down>"             , addName "Sublayout: down" $ sendMessage $ pullGroup D)
-  , ("M-M1-<Up>"               , addName "Sublayout: up" $ sendMessage $ pullGroup U)
-  , ("M-M1-<Right>"            , addName "Sublayout: right" $ sendMessage $ pullGroup R)
+  , ("M-M1-h"                  , addName "Sublayout: push group - left"  $ sendMessage $ pushGroup L)
+  , ("M-M1-j"                  , addName "Sublayout: push group - down"  $ sendMessage $ pushGroup D)
+  , ("M-M1-k"                  , addName "Sublayout: push group - up"    $ sendMessage $ pushGroup U)
+  , ("M-M1-l"                  , addName "Sublayout: push group - right" $ sendMessage $ pushGroup R)
+
+  , ("M-M1-S-h"                , addName "Sublayout: push window - left"  $ sendMessage $ pushWindow L)
+  , ("M-M1-S-j"                , addName "Sublayout: push window - down"  $ sendMessage $ pushWindow D)
+  , ("M-M1-S-k"                , addName "Sublayout: push window - up"    $ sendMessage $ pushWindow U)
+  , ("M-M1-S-l"                , addName "Sublayout: push window - right" $ sendMessage $ pushWindow R)
+
+  , ("M-M1-<Left>"             , addName "Sublayout: pull group - left"  $ sendMessage $ pullGroup L)
+  , ("M-M1-<Down>"             , addName "Sublayout: pull group - down"  $ sendMessage $ pullGroup D)
+  , ("M-M1-<Up>"               , addName "Sublayout: pull group - up"    $ sendMessage $ pullGroup U)
+  , ("M-M1-<Right>"            , addName "Sublayout: pull group - right" $ sendMessage $ pullGroup R)
+
+  , ("M-M1-S-<Left>"           , addName "Sublayout: pull window - left"  $ sendMessage $ pullWindow L)
+  , ("M-M1-S-<Down>"           , addName "Sublayout: pull window - down"  $ sendMessage $ pullWindow D)
+  , ("M-M1-S-<Up>"             , addName "Sublayout: pull window - up"    $ sendMessage $ pullWindow U)
+  , ("M-M1-S-<Right>"          , addName "Sublayout: pull window - right" $ sendMessage $ pullWindow R)
+
   , ("M-M1-m"                  , addName "Sublayout: merge all" $ withFocused (sendMessage . MergeAll ))
   , ("M-M1-u"                  , addName "Sublayout: unmerge" $ withFocused (sendMessage . UnMerge ))
   , ("M-M1-."                  , addName "Sublayout: focus up" $ do
