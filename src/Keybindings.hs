@@ -174,8 +174,8 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-M1-S-<Up>"             , addName "Sublayout: pull window - up"    $ sendMessage $ pullWindow U)
   , ("M-M1-S-<Right>"          , addName "Sublayout: pull window - right" $ sendMessage $ pullWindow R)
 
-  , ("M-M1-m"                  , addName "Sublayout: merge all" $ withFocused (sendMessage . MergeAll ))
-  , ("M-M1-u"                  , addName "Sublayout: unmerge" $ withFocused (sendMessage . UnMerge ))
+  , ("M-t"                     , addName "Sublayout: merge all" $ withFocused (sendMessage . MergeAll ))
+  , ("M-w"                     , addName "Sublayout: unmerge" $ withFocused (sendMessage . UnMerge ))
   , ("M-M1-."                  , addName "Sublayout: focus up" $ do
       spawn "notify-send \"focus up\""
       onGroup S.focusUp'
@@ -207,7 +207,7 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   -- {{{ Other stuff
   , ("M-S-t"                   , addName "LaptopMode: toggle tablet mode" $ toggleTabletMode)
   , ("M-b"                     , addName "Statusbar: toggle" $ sendMessage ToggleStruts)
-  , ("M-t"                     , addName "Window: unfloat" $ withFocused $ windows . S.sink)
+  , ("M-f"                     , addName "Window: unfloat" $ withFocused $ windows . S.sink)
   , ("M-,"                     , addName "Master: increase" $ sendMessage (IncMasterN 1))
   , ("M-."                     , addName "Master: decrease" $ sendMessage (IncMasterN (-1)))
   , ("M-o"                     , addName "Window: menu" $ windowMenu)
