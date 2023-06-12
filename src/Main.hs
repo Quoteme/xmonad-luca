@@ -1,3 +1,6 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ExtendedDefaultRules #-}
 -- vim: fdm=marker tabstop=2 shiftwidth=2 expandtab
 --
 -- TODO: use `libinput debug-events` (maybe some other more performant program?) to detect touchscreen gestures
@@ -35,6 +38,11 @@ import Options
 import Mousebindings
 import Hooks
 import Thumbnail
+import XMonad.Util.Run (spawnPipe)
+import GHC.IO.Handle (hFlush, hGetLine)
+import Control.Monad (forever, when)
+import Data.List (isInfixOf)
+import LaptopMode (tabletModeHook)
 -- }}}
 
 -- Startup hook
@@ -66,6 +74,7 @@ myStartupHook = do
   spawnOnce "xfce4-panel --disable-wm-check"
   spawnOnce "xhost +si:localuser:$USER"
   setWMName "LG3D"
+  tabletModeHook
 -- }}}
 
 -- Main

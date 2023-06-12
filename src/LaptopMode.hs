@@ -9,6 +9,10 @@ import XMonad
 import qualified XMonad.Util.ExtensibleState as XS
 import GHC.IO (unsafePerformIO)
 import Control.Monad.Primitive
+import XMonad.Util.Run (spawnPipe)
+import GHC.IO.Handle (hFlush, hGetLine)
+import Control.Monad (forever, when)
+import Data.List (isInfixOf)
 
 -- Save the current mode of the laptop for layouts to know 
 data LaptopMode = TabletMode | LaptopMode | CinemaMode 
@@ -30,3 +34,18 @@ toggleTabletMode = do
     TabletMode -> setLaptopMode LaptopMode
     LaptopMode -> setLaptopMode TabletMode
     CinemaMode -> setLaptopMode CinemaMode
+
+-- {{{
+-- TabletModeHook
+tabletModeHook :: X ()
+tabletModeHook = do
+  h <- liftIO $ spawnPipe "libinput debug-events --device /dev/input/event19"
+  liftIO $ hFlush h
+  forever $ do
+    line <- liftIO $ hGetLine h
+    current <- getLaptopMode
+    when ("switch tablet-mode state 1" `isInfixOf` line && current == LaptopMode) $ do
+      setLaptopMode TabletMode
+    when ("switch tablet-mode state 0" `isInfixOf` line && current == TabletMode) $ do
+      setLaptopMode LaptopMode
+-- }}}

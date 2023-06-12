@@ -215,6 +215,10 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   -- {{{ Quitting
   , ("M-<Delete>"              , addName "Xmonad: exit" $ io exitSuccess)
   , ("M-S-<Delete>"            , addName "Xmonad: restart" $ restart "xmonad" True *> spawn "notify-send \"Xmonad: restarted\"")
+  , ("M-C-<Delete>"            , addName "Xmonad: recompile" $ do
+    dirs <- liftIO getDirectories
+    liftIO $ void $ recompile dirs True
+  )
   -- }}}
   -- {{{ Function Keys
   , ("<XF86MonBrightnessUp>"   , addName "Brightness: Monitor: raise" $ raiseMonBrigthness)
