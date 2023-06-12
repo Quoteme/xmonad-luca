@@ -30,6 +30,7 @@ import Thumbnail
 import Text.Format
 import Keybindings
 import LaptopMode
+import XMonad.Hooks.Minimize (minimizeEventHook)
 
 -- {{{ The client events that xmonad is interested in
 myClientMask = focusChangeMask .|. clientMask def
@@ -50,6 +51,7 @@ myManageHook = composeAll
 
 -- {{{ Event hook
 myEventHook = focusOnMouseMove
+            <+> minimizeEventHook
             <+> hintsEventHook
             <+> windowedFullscreenFixEventHook
             <+> notificationsOnTop
