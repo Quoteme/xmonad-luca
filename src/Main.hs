@@ -42,7 +42,6 @@ import XMonad.Util.Run (spawnPipe)
 import GHC.IO.Handle (hFlush, hGetLine)
 import Control.Monad (forever, when)
 import Data.List (isInfixOf)
-import LaptopMode (tabletModeHook)
 -- }}}
 
 -- Startup hook
@@ -74,7 +73,6 @@ myStartupHook = do
   spawnOnce "xfce4-panel --disable-wm-check"
   spawnOnce "xhost +si:localuser:$USER"
   setWMName "LG3D"
-  tabletModeHook
 -- }}}
 
 -- Main
