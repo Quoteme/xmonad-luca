@@ -87,7 +87,7 @@
           inputs.control_center.defaultPackage.x86_64-linux
           pamixer
           xmonadctl
-					tabletmode
+					inputs.tabletmode.defaultPackage.x86_64-linux
           (haskellPackages.ghcWithPackages myHaskellPackages)
         ];
       in
