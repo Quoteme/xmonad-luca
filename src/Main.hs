@@ -73,6 +73,7 @@ myStartupHook = do
   spawnOnce "xfce4-panel --disable-wm-check"
   spawnOnce "xhost +si:localuser:$USER"
   setWMName "LG3D"
+  spawnOnce "tabletmodehook"
 -- }}}
 
 -- Main
