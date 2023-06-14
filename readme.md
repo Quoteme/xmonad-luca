@@ -58,6 +58,7 @@ chmod +w $HOME/.cache/xmonad/xmonad-x86_64-linux
 Adding this file can be automated using home-manager, by adding the following to your `home.nix`:
 
 ```nix
+xdg.configFile."xmonad/build".executable = true;
 xdg.configFile."xmonad/build".text = ''
     #!/usr/bin/env bash
 
