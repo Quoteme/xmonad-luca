@@ -73,19 +73,18 @@ import LaptopMode
 import XMonad.Layout.SubLayouts (pullGroup, GroupMsg (MergeAll, UnMerge), onGroup, pushGroup, pushWindow, pullWindow)
 
 
--- {{{ My own keybindings
+-- My own keybindings
 myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
-  -- {{{ Legend on how to use modifiers
-  -- Code | Key
-  -- M    | super key
-  -- C    | control
-  -- S    | shift
-  -- M1   | alt
-  -- M2   | num lock
-  -- M3   | 
-  -- M4   | super
-  -- }}}
-  -- {{{ 🚀 Launch Programs
+  -- Legend on how to use modifiers
+  --    Code | Key
+  --    M    | super key
+  --    C    | control
+  --    S    | shift
+  --    M1   | alt
+  --    M2   | num lock
+  --    M3   | 
+  --    M4   | super
+  -- 🚀 Launch Programs
   [ ("M-<Return>"              , addName "Spawn Terminal" $ spawn $ terminal config)
   , ("M-d"                     , addName "Open program launcher" $ spawn "rofi -show combi -show-icons")
   , ("M-S-w"                   , addName "Search open window" $ spawn "rofi -show window")
@@ -95,18 +94,15 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-S-q"                   , addName "Kill window" $ kill)
   , ("M-<Space>"               , addName "Layout: next" $ sendMessage NextLayout)
   , ("M-S-<Space>"             , addName "Layout: default" $ setLayout $ layoutHook config)
-  -- }}}
-  -- {{{ 🔄 Rotational Focus Movement
+  -- 🔄 Rotational Focus Movement
   , ("M-<Tab>"                 , addName "WindowStack: rotate next" $ windows S.focusDown   >> myUpdateFocus)
   , ("M-S-<Tab>"               , addName "WindowStack: rotate previous" $ windows S.focusUp >> myUpdateFocus)
   , ("M-C-<Tab>"               , addName "WindowStack: swap next" $ windows S.swapDown      >> myUpdateFocus)
   , ("M-C-S-<Tab>"             , addName "WindowStack: swap previous" $ windows S.swapUp    >> myUpdateFocus)
-  -- }}}
-  -- {{{ 🔎 Easymotion
+  -- 🔎 Easymotion
   , ("M-m"                     , addName "Easymotion: focus" $ selectWindow def >>= (`whenJust` windows . S.focusWindow) >> myUpdateFocus)
   , ("M-C-m"                   , addName "Easymotion: kill" $ selectWindow def >>= (`whenJust` killWindow))
-  -- }}}
-  -- {{{ 🏃 Directional Focus Movement
+  -- 🏃 Directional Focus Movement
   , ("M-h"                     , addName "Focus: left"   $ windowGo L False      >> myUpdateFocus)
   , ("M-j"                     , addName "Focus: down"   $ windowGo D False      >> myUpdateFocus)
   , ("M-k"                     , addName "Focus: up"     $ windowGo U False      >> myUpdateFocus)
@@ -116,8 +112,7 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-<Up>"                  , addName "Focus: up"     $ windowGo U False      >> myUpdateFocus)
   , ("M-<Right>"               , addName "Focus: right"  $ windowGo R False      >> myUpdateFocus)
   -- , ("M-m"                     , addName "Focus: master" $ windows S.focusMaster >> myUpdateFocus)
-  -- }}}
-  -- {{{ 🔀 Directional Window Movement
+  -- 🔀 Directional Window Movement
   , ("M-S-h"                   , addName "Swap: left"   $ windowSwap L False   >> myUpdateFocus)
   , ("M-S-j"                   , addName "Swap: down"   $ windowSwap D False   >> myUpdateFocus)
   , ("M-S-k"                   , addName "Swap: up"     $ windowSwap U False   >> myUpdateFocus)
@@ -127,8 +122,7 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-S-<Up>"                , addName "Swap: up"     $ windowSwap U False   >> myUpdateFocus)
   , ("M-S-<Right>"             , addName "Swap: right"  $ windowSwap R False   >> myUpdateFocus)
   , ("M-S-m"                   , addName "Swap: master" $ windows S.swapMaster >> myUpdateFocus)
-  -- }}}
-  -- {{{ Window resizing
+  -- Window resizing
   , ("M-C-h"                   , addName "Expand: left" $ sendMessage $ ExpandTowards L)
   , ("M-C-j"                   , addName "Expand: down" $ sendMessage $ ExpandTowards D)
   , ("M-C-k"                   , addName "Expand: up" $ sendMessage $ ExpandTowards U)
@@ -137,12 +131,10 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-C-<Down>"              , addName "Expand: down" $ sendMessage $ ExpandTowards D)
   , ("M-C-<Up>"                , addName "Expand: up" $ sendMessage $ ExpandTowards U)
   , ("M-C-<Right>"             , addName "Expand: right" $ sendMessage $ ExpandTowards R)
-  -- }}}
-  -- {{{ Splitting and moving
+  -- Splitting and moving
   , ("M-S-C-k"                 , addName "Split: next" $ sendMessage $ SplitShift Next )
   , ("M-S-C-j"                 , addName "Split: previous" $ sendMessage $ SplitShift Prev)
-  -- }}}
-  -- {{{ Rotations/Swappings
+  -- Rotations/Swappings
   , ("M-r"                     , addName "BSP: rotate" $ myUpdateFocus <> sendMessage Rotate)
   , ("M-S-r"                   , addName "BSP: rotate left around parent" $ myUpdateFocus <> sendMessage RotateL)
   , ("M-C-r"                   , addName "BSP: rotate right around parent" $ myUpdateFocus <> sendMessage RotateR)
@@ -152,8 +144,7 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-p"                     , addName "BSP: paste/move node" $ sendMessage MoveNode)
   , ("M-a"                     , addName "BSP: balance" $ sendMessage Balance)
   , ("M-S-a"                   , addName "BSP: equalize" $ sendMessage Equalize)
-  -- }}}
-  -- {{{ Sublayouts
+  -- Sublayouts
   , ("M-M1-h"                  , addName "Sublayout: push group - left"  $ sendMessage $ pushGroup L)
   , ("M-M1-j"                  , addName "Sublayout: push group - down"  $ sendMessage $ pushGroup D)
   , ("M-M1-k"                  , addName "Sublayout: push group - up"    $ sendMessage $ pushGroup U)
@@ -184,8 +175,7 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
     spawn "notify-send \"focus down\""
     onGroup S.focusDown'
   )
-  -- }}}
-  -- {{{ (Un-)Hiding
+  -- (Un-)Hiding
   , ("M-<Backspace>"           , addName "Window: hide"                         $ withFocused hideWindow *> spawn "notify-send \"hidden a window\"")
   , ("M-S-<Backspace>"         , addName "Window: unhide"                       $ popOldestHiddenWindow >> myUpdateFocus)
   , ("M-S-o"                   , addName "Window: unminimize menu"              $ selectMaximizeWindow)
@@ -203,24 +193,21 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-C-c"                   , addName "Window: kill current copy of window"  $ do
                                                                                   kill1
                                                                                   spawn "notify-send 'deleted current copy'")
-  -- }}}
-  -- {{{ Other stuff
+  -- Other stuff
   , ("M-S-t"                   , addName "LaptopMode: toggle tablet mode" $ toggleTabletMode)
   , ("M-b"                     , addName "Statusbar: toggle" $ sendMessage ToggleStruts)
   , ("M-f"                     , addName "Window: unfloat" $ withFocused $ windows . S.sink)
   , ("M-,"                     , addName "Master: increase" $ sendMessage (IncMasterN 1))
   , ("M-."                     , addName "Master: decrease" $ sendMessage (IncMasterN (-1)))
   , ("M-o"                     , addName "Window: menu" $ windowMenu)
-  -- }}}
-  -- {{{ Quitting
+  -- Quitting
   , ("M-<Delete>"              , addName "Xmonad: exit" $ io exitSuccess)
   , ("M-S-<Delete>"            , addName "Xmonad: restart" $ restart "xmonad" True *> spawn "notify-send \"Xmonad: restarted\"")
   , ("M-C-<Delete>"            , addName "Xmonad: recompile" $ do
     dirs <- liftIO getDirectories
     liftIO $ void $ recompile dirs True
   )
-  -- }}}
-  -- {{{ Function Keys
+  -- Function Keys
   , ("<XF86MonBrightnessUp>"   , addName "Brightness: Monitor: raise" $ raiseMonBrigthness)
   , ("<XF86MonBrightnessDown>" , addName "Brightness: Monitor: lower" $ lowerMonBrigthness)
   , ("<XF86KbdBrightnessUp>"   , addName "Brightness: Keyboard: raise"$ raiseKbdBrigthness)
@@ -235,8 +222,7 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("<XF86Launch1>"           , addName "Workspace: preview" $ spawn "xmonad-workspace-preview")
   , ("<XF86Launch3>"           , addName "Select color" $ spawn "xcolor | perl -pe 'chomp if eof' | xclip -selection clipboard")
   , ("<XF86Launch4>"           , addName "Power profile: cycle" $ spawn "powerprofilesctl-cycle")
-  -- }}}
-  -- {{{ Workspace keys
+  -- Workspace keys
   , ("M-S-p"                   , addName "Workspace: preview" $ spawn "xmonad-workspace-preview")
   ] ^++^
   (  [ ("M-"   ++ show n, withNthWorkspace S.greedyView (n-1)) | n <- [0..9] ]
@@ -251,10 +237,8 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
                                      ]
   ]
   )
-  -- }}}
   where
     -- Helper functions
-    -- {{{
     lowerMonBrigthness :: MonadIO m => m ()
     lowerMonBrigthness =  spawn "brightnessctl set 5%-"
     raiseMonBrigthness :: MonadIO m => m ()
@@ -268,16 +252,12 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
     raiseAudio :: MonadIO m => m ()
     raiseAudio =  spawn "pamixer --decrease 5"
     myUpdateFocus = updatePointer (0.5, 0.5) (0.1, 0.1)
-  -- }}}
--- }}}
 
--- {{{ My additional keybindings
--- {{{ 
+-- My additional keybindings
 -- Additional state needed
 newtype KeyboardToggleState = KeyboardToggleState Bool deriving (Typeable, Read, Show)
 instance ExtensionClass KeyboardToggleState where
   initialValue = KeyboardToggleState False
--- }}}
 myAdditionalKeys config = additionalKeys config
   [ ((0                 , xF86XK_TouchpadToggle ), toggleTouchpad)
   , ((0                 , xF86XK_TouchpadOn     ), enableTouchpad)
@@ -313,7 +293,6 @@ myAdditionalKeys config = additionalKeys config
                     *> spawn "notify-send 'touchpad disabled'"
 
 -- Needed for adding workspaces with automatic names
--- {{{
 addLastWorkspace :: X ()
 addLastWorkspace = do
     -- maybe use xdotool instead of extensible state?
@@ -336,5 +315,3 @@ removeLastWorkspace = do
     -- let oldFiles = [ f | f <- sort files, "xmonad_workspace_thumbnail" `isPrefixOf` f ]
     -- liftIO $ removeFile $ thumbDir ++ last oldFiles
     -- return ()
--- }}}
--- }}}

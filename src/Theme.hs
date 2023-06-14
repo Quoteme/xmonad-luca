@@ -8,7 +8,6 @@ import Icons
 import XMonad.Util.Image
 
 -- Theme
--- {{{
 myOwnTheme :: Theme
 myOwnTheme = def {
   activeColor         = "#161616",
@@ -32,4 +31,3 @@ myOwnTheme = def {
                         -- , (maxiButton, CenterRight (buttonSize + buttonPadding + buttonMargin))
                         , (closeButton, CenterRight buttonMargin) ]
 }
--- }}}

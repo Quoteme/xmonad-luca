@@ -36,14 +36,13 @@ import LaptopMode
 import XMonad.Layout.Tabbed (simpleTabbed)
 import XMonad.Layout.SubLayouts (subLayout, subTabbed)
 
--- {{{ Navigation2DConfig
+-- Navigation2DConfig
 myNavigation2DConfig = def { layoutNavigation = [
     ("myBSP", hybridOf sideNavigation lineNavigation ),
     ("myTabletMode", hybridOf sideNavigation lineNavigation )
   ] }
--- }}}
 
--- {{{ My Layouts
+-- My Layouts
 myLayout = avoidStruts
          myTabletMode
          ||| myFullscreen
@@ -70,17 +69,13 @@ myLayout = avoidStruts
 -- My own extended version of windowSwitcherDecoration
 -- for example, draggina a window to the right edge of the screen should
 -- move it to the next workspace
--- {{{
-
 extendedWindowSwitcherDecoration :: (Eq a, Shrinker s) => s -> l a -> ModifiedLayout (Decoration ExtendedWindowSwitcherDecoration s) l a
 extendedWindowSwitcherDecoration s = decoration s myOwnTheme EWSD
 
 -- Custom layout
--- {{{
 data ExtendedWindowSwitcherDecoration a = EWSD deriving (Show, Read)
 instance Eq a => DecorationStyle ExtendedWindowSwitcherDecoration a where
   describeDeco _ = "ExtendedWindowSwitcherDecoration"
-  -- {{{ 
   decorationCatchClicksHook EWSD mainw dFl dFr = do
     handleButtons dFl dFr
     where
@@ -128,8 +123,6 @@ instance Eq a => DecorationStyle ExtendedWindowSwitcherDecoration a where
           return True
         -- no button was clicked
         | otherwise = return False
-  --  }}}
-  -- {{{
   decorationWhileDraggingHook _ ex ey (mainw, r) x y = do
     let rect = Rectangle (x - (fi ex - rect_x r))
                          (y - (fi ey - rect_y r))
@@ -138,8 +131,6 @@ instance Eq a => DecorationStyle ExtendedWindowSwitcherDecoration a where
     -- when (x<10) $
     --   spawn $ format "notify-send 'xmonad internal' 'dragging at x: {0} y: {1}'" [show x, show y]
     sendMessage $ DraggingWindow mainw rect
-  --  }}}
-  -- {{{
   decorationAfterDraggingHook _ (mainw, r) decoWin = do
     focus mainw
     hasCrossed <- handleScreenCrossing mainw decoWin
@@ -166,8 +157,6 @@ instance Eq a => DecorationStyle ExtendedWindowSwitcherDecoration a where
                   | x == a    = b
                   | x == b    = a
                   | otherwise = x
-  --  }}}
-  -- {{{
   -- Only show decoration for currently focused window
   pureDecoration _ _ ht _ s _ (w, Rectangle x y wh ht') =
     if isInStack s w
@@ -183,7 +172,3 @@ instance Eq a => DecorationStyle ExtendedWindowSwitcherDecoration a where
       return $ pureDecoration ds w h r s wrs wr
     else
       return Nothing
-  -- }}}
--- }}}
--- }}}
--- }}}

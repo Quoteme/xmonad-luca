@@ -1,20 +1,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ExtendedDefaultRules #-}
--- vim: fdm=marker tabstop=2 shiftwidth=2 expandtab
---
--- TODO: use `libinput debug-events` (maybe some other more performant program?) to detect touchscreen gestures
--- Language overrides
--- {{{
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ViewPatterns #-}
-
--- }}}
-
--- Imports
--- {{{
--- for some fullscreen events, also for xcomposite in obs.
 
 import Hooks
 import Keybindings
@@ -42,10 +31,8 @@ import XMonad.Util.Run (spawnPipe)
 import GHC.IO.Handle (hFlush, hGetLine)
 import Control.Monad (forever, when)
 import Data.List (isInfixOf)
--- }}}
 
 -- Startup hook
--- {{{
 myStartupHook = do
   -- spawnOnce "polybar top"
   adjustEventInput
@@ -74,10 +61,8 @@ myStartupHook = do
   spawnOnce "xhost +si:localuser:$USER"
   setWMName "LG3D"
   spawnOnce "tabletmodehook"
--- }}}
 
 -- Main
--- {{{
 main = do
   putStrLn "Starting XMonad"
   -- set myTerminal to the value of the environment variable "TERMINAL"
@@ -115,5 +100,3 @@ main = do
           logHook = myLogHook
         }
       )
-
--- }}}

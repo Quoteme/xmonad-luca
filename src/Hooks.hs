@@ -32,11 +32,10 @@ import Keybindings
 import LaptopMode
 import XMonad.Hooks.Minimize (minimizeEventHook)
 
--- {{{ The client events that xmonad is interested in
+--{{ The client events that xmonad is interested in
 myClientMask = focusChangeMask .|. clientMask def
--- }}}
 
--- {{{ Manage hooks
+-- Manage hooks
 myManageHook = composeAll
   [ appName =? "control_center" --> doRectFloat (S.RationalRect 0.65 0.05 0.325 0.45)
   , className =? "Xfce4-popup-whiskermenu" --> doCenterFloat -- Center the WhiskerMenu
@@ -47,9 +46,8 @@ myManageHook = composeAll
   , className =? ".blueman-manager-wrapped" --> doRectFloat (S.RationalRect 0.65 0.05 0.325 0.45)
   , isDialog --> doCenterFloat
   ]
--- }}}
 
--- {{{ Event hook
+-- Event hook
 myEventHook = focusOnMouseMove
             <+> minimizeEventHook
             <+> hintsEventHook
@@ -103,9 +101,8 @@ myEventHook = focusOnMouseMove
                   spawn "xdotool windowraise `xdotool search --all --name xfce4-notifyd`"
                   return $ All True
                 notificationsOnTop ev = return $ All True
--- }}}
 
--- {{{ Log hook
+-- Log hook
 myLogHook :: X ()
 myLogHook = do
   -- thumbnailhook disabled, because I do not use it that much (maybe this saves battery?)
@@ -125,9 +122,8 @@ myLogHook = do
         createThumbnail workspaceName quality = do
           -- TODO: Write this to ram
           spawn $ format "import -window root -resize {0}% $XDG_CACHE_HOME/xmonad_workspace_thumbnail-{1}.png" [(show quality), workspaceName]
--- }}}
 
--- {{{ Screen / rander change hooks
+-- Screen / rander change hooks
 myAfterRescreenHook :: X ()
 myAfterRescreenHook = do
   spawn "nitrogen --restore"
@@ -141,5 +137,3 @@ myRandrChangeHook = do
   spawn "xinput --map-to-output 'ELAN9008:00 04F3:2C82' eDP"
   spawn "xinput --map-to-output 'ELAN9008:00 04F3:2C82 Stylus Pen (0)' eDP"
   spawn "xinput --map-to-output 'ELAN9008:00 04F3:2C82 Stylus Eraser (0)' eDP"
-
--- }}}

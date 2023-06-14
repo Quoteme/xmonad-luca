@@ -12,7 +12,6 @@ import Data.Maybe
 import XMonad.Core (runQuery)
 
 -- Allow user to select window to reopen
--- {{{
 selectMaximizeWindow :: X ()
 selectMaximizeWindow = do
   -- withMinimized (mapM_ maximizeWindow)
@@ -30,5 +29,3 @@ selectMaximizeWindow = do
       winTitle <- runQuery title w
       winAppName <- runQuery appName w
       return $ winTitle ++ " : " ++ winAppName
-
--- }}}
