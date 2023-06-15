@@ -31,6 +31,7 @@ import XMonad.Util.Run (spawnPipe)
 import GHC.IO.Handle (hFlush, hGetLine)
 import Control.Monad (forever, when)
 import Data.List (isInfixOf)
+import LaptopMode (tabletModeHook)
 
 -- Startup hook
 myStartupHook = do
@@ -60,7 +61,6 @@ myStartupHook = do
   spawnOnce "xfce4-panel --disable-wm-check"
   spawnOnce "xhost +si:localuser:$USER"
   setWMName "LG3D"
-  spawnOnce "tabletmodehook"
 
 -- Main
 main = do
@@ -68,6 +68,7 @@ main = do
   -- set myTerminal to the value of the environment variable "TERMINAL"
   -- if the environment variable is not set, use "alacritty"
   myTerminal <- lookupEnv "TERMINAL" >>= return . maybe "alacritty" id
+  tabletModeHook
   getDirectories
     >>= launch
       ( docks

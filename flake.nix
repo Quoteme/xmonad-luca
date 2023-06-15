@@ -9,7 +9,6 @@
     };
     xmonad-workspace-preview.url = "github:Quoteme/xmonad-workspace-preview";
     control_center.url = "github:Quoteme/control_center";
-    tabletmode.url = "github:Quoteme/tabletmode";
     flake-utils = {
       inputs.nixpkgs.follows = "nixpkgs";
       url = "github:numtide/flake-utils";
@@ -87,7 +86,6 @@
           inputs.control_center.defaultPackage.x86_64-linux
           pamixer
           xmonadctl
-					inputs.tabletmode.defaultPackage.x86_64-linux
           (haskellPackages.ghcWithPackages myHaskellPackages)
         ];
       in
