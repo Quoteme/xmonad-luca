@@ -29,7 +29,7 @@
           overlays = [
             inputs.xmonad-contrib.overlay
           ];
-					config.allowBroken = true;
+          config.allowBroken = true;
         };
         xmonadctl = (pkgs.callPackage
           (pkgs.fetchFromGitHub {
@@ -39,28 +39,29 @@
             sha256 = "1bjf3wnxsghfb64jji53m88vpin916yqlg3j0r83kz9k79vqzqxd";
           })
           { });
-				myHaskellPackages = (hpkgs: with hpkgs; [
-					base
-					# TODO: add the floating-window-decorations patch from:
-					# https://github.com/xmonad/xmonad/issues/355
-					xmonad
-					xmonad-contrib
-					xmonad-extras
-					text-format-simple
-				  # streamly
-				  # streamly-core
-				  # evdev
-				  # (pkgs.haskell.lib.overrideCabal evdev {
-				  #  version = "2.1.0";
-				  #  sha256 = "sha256-Q1IwcL0ABaUXTx2KWk2ZZaVnY0i/YBf1Y7WJqC9M7r8=";
-				  #  })
-					# evdev-streamly
-				]);
+        myHaskellPackages = (hpkgs: with hpkgs; [
+          base
+          # TODO: add the floating-window-decorations patch from:
+          # https://github.com/xmonad/xmonad/issues/355
+          xmonad
+          xmonad-contrib
+          xmonad-extras
+          text-format-simple
+          # streamly
+          # streamly-core
+          # evdev
+          # (pkgs.haskell.lib.overrideCabal evdev {
+          #  version = "2.1.0";
+          #  sha256 = "sha256-Q1IwcL0ABaUXTx2KWk2ZZaVnY0i/YBf1Y7WJqC9M7r8=";
+          #  })
+          # evdev-streamly
+        ]);
         dependencies = with pkgs; [
           xdotool
           imagemagick
           xorg.xinput
           libnotify
+          libinput
           xfce.xfce4-panel
           xfce.xfce4-notifyd
           xfce.xfce4-panel-profiles
