@@ -1,16 +1,20 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns #-}
 
+import Control.Monad (forever, when)
+import Data.List (isInfixOf)
+import GHC.IO.Handle (hFlush, hGetLine)
 import Hooks
 import Keybindings
+import LaptopMode (tabletModeHook)
 import Layouts
 import Mousebindings
 import Options
 import System.Environment (lookupEnv)
+import Thumbnail
 import XMonad
 import XMonad.Actions.Navigation2D
 import XMonad.Actions.UpdateFocus (adjustEventInput, focusOnMouseMove)
@@ -19,24 +23,14 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.Rescreen
 import XMonad.Hooks.SetWMName (setWMName)
 import XMonad.Util.NamedActions (addDescrKeys, addName, subtitle, xMessage, (^++^))
-import XMonad.Util.SpawnOnce
-
-import Keybindings
-import Layouts
-import Options
-import Mousebindings
-import Hooks
-import Thumbnail
 import XMonad.Util.Run (spawnPipe)
-import GHC.IO.Handle (hFlush, hGetLine)
-import Control.Monad (forever, when)
-import Data.List (isInfixOf)
-import LaptopMode (tabletModeHook)
+import XMonad.Util.SpawnOnce
 
 -- Startup hook
 myStartupHook = do
   -- spawnOnce "polybar top"
   adjustEventInput
+  tabletModeHook
   -- only call the function, when the environment variable "XMONAD_TEST_MODE" is set
   test_mode <- liftIO $ lookupEnv "XMONAD_TEST_MODE"
   if test_mode == Just "1"
@@ -68,36 +62,34 @@ main = do
   -- set myTerminal to the value of the environment variable "TERMINAL"
   -- if the environment variable is not set, use "alacritty"
   myTerminal <- lookupEnv "TERMINAL" >>= return . maybe "alacritty" id
-  tabletModeHook
-  getDirectories
-    >>= launch
-      ( docks
-      $ ewmh
-      $ myAdditionalKeys 
-      $ addDescrKeys ((myModMask, xK_F1), xMessage) myKeys
-      $ withNavigation2DConfig myNavigation2DConfig
-      $ rescreenHook def
-        { randrChangeHook = myRandrChangeHook
-        , afterRescreenHook = myAfterRescreenHook }
-      $ def
-        { -- simple stuff
-          -- set the terminal variable 
-          terminal = myTerminal,
-          focusFollowsMouse = myFocusFollowsMouse,
-          clickJustFocuses = myClickJustFocuses,
-          borderWidth = myBorderWidth,
-          modMask = myModMask,
-          workspaces = myWorkspaces,
-          normalBorderColor = myNormalBorderColor,
-          focusedBorderColor = myFocusedBorderColor,
-          -- mouse bindings
-          mouseBindings = myMouseBindings,
-          -- hooks, layouts
-          layoutHook = myLayout,
-          manageHook = myManageHook,
-          handleEventHook = myEventHook,
-          startupHook = myStartupHook,
-          clientMask = myClientMask,
-          logHook = myLogHook
-        }
-      )
+  dirs <- getDirectories
+  let myConfig =
+        ( docks
+            $ ewmh
+            $ myAdditionalKeys
+            $ addDescrKeys ((myModMask, xK_F1), xMessage) myKeys
+            $ withNavigation2DConfig myNavigation2DConfig
+            $ rescreenHook
+              def
+                { randrChangeHook = myRandrChangeHook,
+                  afterRescreenHook = myAfterRescreenHook
+                }
+            $ def
+              { terminal = myTerminal,
+                focusFollowsMouse = myFocusFollowsMouse,
+                clickJustFocuses = myClickJustFocuses,
+                borderWidth = myBorderWidth,
+                modMask = myModMask,
+                workspaces = myWorkspaces,
+                normalBorderColor = myNormalBorderColor,
+                focusedBorderColor = myFocusedBorderColor,
+                mouseBindings = myMouseBindings,
+                layoutHook = myLayout,
+                manageHook = myManageHook,
+                handleEventHook = myEventHook,
+                startupHook = myStartupHook,
+                clientMask = myClientMask,
+                logHook = myLogHook
+              }
+        )
+   in launch myConfig dirs

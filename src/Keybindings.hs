@@ -100,8 +100,8 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-C-<Tab>"               , addName "WindowStack: swap next" $ windows S.swapDown      >> myUpdateFocus)
   , ("M-C-S-<Tab>"             , addName "WindowStack: swap previous" $ windows S.swapUp    >> myUpdateFocus)
   -- 🔎 Easymotion
-  , ("M-m"                     , addName "Easymotion: focus" $ selectWindow def >>= (`whenJust` windows . S.focusWindow) >> myUpdateFocus)
-  , ("M-C-m"                   , addName "Easymotion: kill" $ selectWindow def >>= (`whenJust` killWindow))
+  , ("M-g"                     , addName "Easymotion: focus" $ selectWindow def >>= (`whenJust` windows . S.focusWindow) >> myUpdateFocus)
+  , ("M-C-g"                   , addName "Easymotion: kill" $ selectWindow def >>= (`whenJust` killWindow))
   -- 🏃 Directional Focus Movement
   , ("M-h"                     , addName "Focus: left"   $ windowGo L False      >> myUpdateFocus)
   , ("M-j"                     , addName "Focus: down"   $ windowGo D False      >> myUpdateFocus)
@@ -179,7 +179,6 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("M-<Backspace>"           , addName "Window: hide"                         $ withFocused hideWindow *> spawn "notify-send \"hidden a window\"")
   , ("M-S-<Backspace>"         , addName "Window: unhide"                       $ popOldestHiddenWindow >> myUpdateFocus)
   , ("M-S-o"                   , addName "Window: unminimize menu"              $ selectMaximizeWindow)
-  , ("M-C-m"                   , addName "Window: maximize"                     $ withFocused (sendMessage . maximizeRestore))
   , ("M-C-m"                   , addName "Window: maximize"                     $ withFocused (sendMessage . maximizeRestore))
   , ("M-c"                     , addName "Window: copy to all other workspaces" $ do
                                                                                   spawn $  "notify-send "
