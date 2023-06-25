@@ -86,6 +86,7 @@
           inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
           inputs.control_center.defaultPackage.x86_64-linux
           pamixer
+					pulseaudio
           xmonadctl
           (haskellPackages.ghcWithPackages myHaskellPackages)
         ];
