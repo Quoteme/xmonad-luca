@@ -49,6 +49,11 @@ myStartupHook = do
       spawnOnce "nitrogen --restore &"
       spawnOnce "export SSH_AUTH_SOCK"
       spawnOnce "batsignal -b -n BAT0"
+      spawnOnce "pactl load-module module-bluetooth-policy auto_switch=2"
+      spawnOnce "pactl load-module module-bluetooth-discover"
+      spawnOnce "pactl load-module module-bluetooth-policy"
+      spawnOnce "pactl load-module module-switch-on-connect"
+      spawnOnce "pactl load-module module-switch-on-port-available"
       liftIO removeOldThumbnails
   spawnOnce "~/.autostart.sh"
   spawnOnce "launch-notification-manager"
