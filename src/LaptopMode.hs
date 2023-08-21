@@ -14,6 +14,8 @@ import System.Process (CreateProcess (std_out), StdStream (CreatePipe), createPr
 import XMonad
 import XMonad.Util.ExtensibleState qualified as XS
 import XMonad.Util.Run (spawnPipe)
+import XMonad.Util.SpawnOnce (spawnOnce)
+import Text.Format (format)
 
 -- Save the current mode of the laptop for layouts to know
 data LaptopMode = TabletMode | LaptopMode | CinemaMode
@@ -41,14 +43,17 @@ processCommand line = do
   -- Process the line or perform any desired actions
   -- putStrLn $ "Received event: " ++ line
   when ("switch tablet-mode state 1" `isInfixOf` line) $ do
+      spawnOnce "notify-send 'XMonad' 'Tablet mode activated'"
       io $ void $ runCommand "xmonadctl layout-tablet"
   when ("switch tablet-mode state 0" `isInfixOf` line) $ do
+      spawnOnce "notify-send 'XMonad' 'Tablet mode deactivated'"
       io $ void $ runCommand "xmonadctl layout-normal"
 
 tabletModeHook :: X ()
 tabletModeHook = do
   -- use libinput to find the device id of `Asus WMI hotkeys`
   deviceID <- io $ readProcess "sh" ["-c", "libinput list-devices | grep 'Asus WMI hotkeys' -A 2 | grep -o '/dev/input/event[0-9]*'"] ""
+  spawnOnce $ format "notify-send 'XMonad' 'Tablet mode detection started for device {}'" [deviceID]
   -- use `libinput debug-events --device deviceID` to listen for events
   -- specifically, call the above command and whenever a new line is printed, run the function `processCommand` with the line as an argument
   (_, Just stdoutHandle, _, processHandle) <- io $ createProcess (shell $ "libinput debug-events --device " ++ deviceID) { std_out = CreatePipe }

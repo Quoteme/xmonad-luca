@@ -37,10 +37,14 @@ import XMonad.Layout.Tabbed (simpleTabbed)
 import XMonad.Layout.SubLayouts (subLayout, subTabbed)
 
 -- Navigation2DConfig
-myNavigation2DConfig = def { layoutNavigation = [
-    ("myBSP", hybridOf sideNavigation lineNavigation ),
-    ("myTabletMode", hybridOf sideNavigation lineNavigation )
-  ] }
+myNavigation2DConfig = def
+  { layoutNavigation =
+    [ ("myBSP", hybridOf sideNavigation lineNavigation )
+    , ("myTabletMode", hybridOf sideNavigation lineNavigation )
+    ]
+  , screenNavigation = lineNavigation
+  , floatNavigation = hybridOf sideNavigation lineNavigation
+  }
 
 -- My Layouts
 myLayout = avoidStruts

@@ -47,6 +47,7 @@
           xmonad-contrib
           xmonad-extras
           text-format-simple
+          named
           # streamly
           # streamly-core
           # evdev
@@ -84,12 +85,12 @@
           brightnessctl
           inputs.screenrotate.defaultPackage.x86_64-linux
           inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
-          inputs.control_center.defaultPackage.x86_64-linux
           pamixer
 					pulseaudio
           xmonadctl
           (haskellPackages.ghcWithPackages myHaskellPackages)
-        ];
+        ]
+				++ lib.optional (inputs.control_center ? defaultPackage) inputs.control_center.defaultPackage.x86_64-linux;
       in
       rec {
         defaultApp = apps.xmonad-luca;

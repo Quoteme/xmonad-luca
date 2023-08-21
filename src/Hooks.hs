@@ -21,7 +21,7 @@ import XMonad.Layout.BinarySpacePartition
 import XMonad.Layout.LayoutHints
 import XMonad.Util.Hacks (windowedFullscreenFixEventHook)
 import XMonad.Actions.UpdatePointer (updatePointer)
-import XMonad.Hooks.ManageHelpers (doRectFloat, isDialog, doCenterFloat)
+import XMonad.Hooks.ManageHelpers (doRectFloat, isDialog, doCenterFloat, isInProperty)
 import XMonad.Actions.CycleWindows (rotUnfocusedUp, rotUnfocusedDown)
 
 import Utilities
@@ -37,14 +37,16 @@ myClientMask = focusChangeMask .|. clientMask def
 
 -- Manage hooks
 myManageHook = composeAll
-  [ appName =? "control_center" --> doRectFloat (S.RationalRect 0.65 0.05 0.325 0.45)
-  , className =? "Xfce4-popup-whiskermenu" --> doCenterFloat -- Center the WhiskerMenu
+  [ className =? "Xfce4-popup-whiskermenu" --> doCenterFloat -- Center the WhiskerMenu
+  -- , appName =? "control_center" --> doRectFloat (S.RationalRect 0.65 0.05 0.325 0.45)
   , className =? "wrapper-2.0" --> doCenterFloat -- Center the WhiskerMenu
   , className =? "Wrapper-2.0" --> doCenterFloat -- Center the WhiskerMenu
   , appName =? "Whisker Menu" --> doRectFloat (S.RationalRect 0.1 0.05 0.325 0.45)
   , className =? "Onboard" --> doFloat
   , className =? ".blueman-manager-wrapped" --> doRectFloat (S.RationalRect 0.65 0.05 0.325 0.45)
   , isDialog --> doCenterFloat
+  , isInProperty "_NET_WM_WINDOW_TYPE" "_NET_WM_WINDOW_TYPE_NOTIFICATION" --> doIgnore
+  , className =? "GTA: San Andreas" --> doIgnore
   ]
 
 -- Event hook

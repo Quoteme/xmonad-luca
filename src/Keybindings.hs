@@ -2,6 +2,7 @@
 --
 -- This file is responsible for the keybindings in xmonad-luca
 --
+{-# LANGUAGE OverloadedStrings #-}
 
 module Keybindings where
 
@@ -55,7 +56,7 @@ import Text.Format (format)
 import XMonad.Util.Image (Placement(..))
 import XMonad.Layout.Minimize (minimize)
 import qualified XMonad.Layout.BoringWindows as BW
-import XMonad.Actions.Minimize (withMinimized, maximizeWindow, minimizeWindow)
+import XMonad.Actions.Minimize (withMinimized, maximizeWindow, minimizeWindow, maximizeWindowAndFocus, withLastMinimized)
 import XMonad.Actions.GridSelect (gridselect)
 import XMonad.Layout.Maximize (maximize, maximizeRestore)
 import Control.Concurrent (threadDelay)
@@ -67,14 +68,30 @@ import XMonad.Actions.CycleWindows (rotUnfocusedUp, rotUnfocusedDown)
 import Data.Time.Clock.POSIX (getPOSIXTime, POSIXTime)
 import System.Directory (getHomeDirectory, listDirectory, removeFile)
 import System.Environment (lookupEnv)
-import Utilities (selectMaximizeWindow)
+import Utilities (selectMaximizeWindow, toggleFloat)
 import Options
 import LaptopMode
 import XMonad.Layout.SubLayouts (pullGroup, GroupMsg (MergeAll, UnMerge), onGroup, pushGroup, pushWindow, pullWindow)
+import XMonad.Hooks.DebugStack (debugStackFullString)
+
+-- writeText will write a string to a file using data.Text
+import qualified Data.Text as T
+import qualified Data.Text.IO as Tio
 
 
 -- My own keybindings
 myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
+  -- Legend on how to use modifiers
+  --    Code | Key
+  --    M    | super key
+  --    C    | control
+  --    S    | shift
+  --    M1   | alt
+  --    M2   | num lock
+  --    M3   | 
+  --    M4   | super
+  -- 🚀 Launch Programs
+  
   -- Legend on how to use modifiers
   --    Code | Key
   --    M    | super key
@@ -176,10 +193,10 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
     onGroup S.focusDown'
   )
   -- (Un-)Hiding
-  , ("M-<Backspace>"           , addName "Window: hide"                         $ withFocused hideWindow *> spawn "notify-send \"hidden a window\"")
-  , ("M-S-<Backspace>"         , addName "Window: unhide"                       $ popOldestHiddenWindow >> myUpdateFocus)
-  , ("M-S-o"                   , addName "Window: unminimize menu"              $ selectMaximizeWindow)
-  , ("M-C-m"                   , addName "Window: maximize"                     $ withFocused (sendMessage . maximizeRestore))
+  , ("M-<Backspace>"           , addName "Window: minimize window"              $ withFocused minimizeWindow)
+  , ("M-S-<Backspace>"         , addName "Window: unminimize last"              $ withLastMinimized maximizeWindowAndFocus)
+  , ("M-S-C-<Backspace>"       , addName "Window: unminimize menu"              $ selectMaximizeWindow)
+  , ("M-m"                     , addName "Window: maximize"                     $ withFocused (sendMessage . maximizeRestore))
   , ("M-c"                     , addName "Window: copy to all other workspaces" $ do
                                                                                   spawn $  "notify-send "
                                                                                         ++ "'window copied to all workspaces' "
@@ -195,7 +212,7 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   -- Other stuff
   , ("M-S-t"                   , addName "LaptopMode: toggle tablet mode" $ toggleTabletMode)
   , ("M-b"                     , addName "Statusbar: toggle" $ sendMessage ToggleStruts)
-  , ("M-f"                     , addName "Window: unfloat" $ withFocused $ windows . S.sink)
+  , ("M-f"                     , addName "Window: toggle float" $ withFocused toggleFloat)
   , ("M-,"                     , addName "Master: increase" $ sendMessage (IncMasterN 1))
   , ("M-."                     , addName "Master: decrease" $ sendMessage (IncMasterN (-1)))
   , ("M-o"                     , addName "Window: menu" $ windowMenu)
@@ -206,6 +223,8 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
     dirs <- liftIO getDirectories
     liftIO $ void $ recompile dirs True
   )
+  -- Debugging
+  , ("M-C-d"                   , addName "Workspace: debug" $ debugStackFullString >>= liftIO . Tio.writeFile "/tmp/xmonad_debug" . T.pack)
   -- Function Keys
   , ("<XF86MonBrightnessUp>"   , addName "Brightness: Monitor: raise" $ raiseMonBrigthness)
   , ("<XF86MonBrightnessDown>" , addName "Brightness: Monitor: lower" $ lowerMonBrigthness)
@@ -213,12 +232,12 @@ myKeys config = (subtitle "Custom Keys":) $ mkNamedKeymap config $
   , ("<XF86KbdBrightnessDown>" , addName "Brightness: Keyboard: lower" $ lowerKbdBrigthness)
   , ("<XF86AudioLowerVolume>"  , addName "Volume: raise" $ raiseAudio)
   , ("<XF86AudioRaiseVolume>"  , addName "Volume: lower" $ lowerAudio)
-  , ("<XF86AudioMicMute>"      , addName "Microphone: toggle" $ spawn "amixer set Capture toggle")
+  -- , ("<XF86AudioMicMute>"      , addName "Microphone: toggle" $ spawn "pamixer --toggle-mute")
   , ("<XF86AudioMute>"         , addName "Volume: toggle" $ spawn "pamixer --toggle-mute")
   , ("<XF86AudioNext>"         , addName "Media: next" $ spawn "playerctl next")
   , ("<XF86AudioPrev>"         , addName "Media: previous" $ spawn "playerctl previous")
   , ("<XF86AudioPlay>"         , addName "Media: pause" $ spawn "playerctl play-pause")
-  , ("<XF86Launch1>"           , addName "Workspace: preview" $ spawn "xmonad-workspace-preview")
+  , ("<XF86Launch1>"           , addName "Workspace: debug" $ debugStackFullString >>= liftIO . Tio.writeFile "/tmp/xmonad_debug" . T.pack)
   , ("<XF86Launch3>"           , addName "Select color" $ spawn "xcolor | perl -pe 'chomp if eof' | xclip -selection clipboard")
   , ("<XF86Launch4>"           , addName "Power profile: cycle" $ spawn "powerprofilesctl-cycle")
   -- Workspace keys

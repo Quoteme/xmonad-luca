@@ -30,7 +30,7 @@ import XMonad.Util.SpawnOnce
 myStartupHook = do
   -- spawnOnce "polybar top"
   adjustEventInput
-  tabletModeHook
+  -- tabletModeHook
   -- only call the function, when the environment variable "XMONAD_TEST_MODE" is set
   test_mode <- liftIO $ lookupEnv "XMONAD_TEST_MODE"
   if test_mode == Just "1"
@@ -54,7 +54,7 @@ myStartupHook = do
       spawnOnce "pactl load-module module-bluetooth-policy"
       spawnOnce "pactl load-module module-switch-on-connect"
       spawnOnce "pactl load-module module-switch-on-port-available"
-      liftIO removeOldThumbnails
+      -- liftIO removeOldThumbnails
   spawnOnce "~/.autostart.sh"
   spawnOnce "launch-notification-manager"
   spawnOnce "xfce4-panel --disable-wm-check"
