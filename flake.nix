@@ -89,8 +89,7 @@
 					pulseaudio
           xmonadctl
           (haskellPackages.ghcWithPackages myHaskellPackages)
-        ]
-				++ lib.optional (inputs.control_center ? defaultPackage) inputs.control_center.defaultPackage.x86_64-linux;
+        ];
       in
       rec {
         defaultApp = apps.xmonad-luca;
