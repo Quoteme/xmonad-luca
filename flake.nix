@@ -56,6 +56,9 @@
           #  sha256 = "sha256-Q1IwcL0ABaUXTx2KWk2ZZaVnY0i/YBf1Y7WJqC9M7r8=";
           #  })
           # evdev-streamly
+          haskell-dap
+          ghci-dap
+          haskell-debug-adapter
         ]);
         dependencies = with pkgs; [
           xdotool
@@ -86,7 +89,7 @@
           inputs.screenrotate.defaultPackage.x86_64-linux
           inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
           pamixer
-					pulseaudio
+          pulseaudio
           xmonadctl
           (haskellPackages.ghcWithPackages myHaskellPackages)
         ];
@@ -102,6 +105,7 @@
         # create a defualt devshell
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
+            haskell-language-server
             (pkgs.python310.withPackages (ps: with ps; [
               PyVirtualDisplay
             ]))
