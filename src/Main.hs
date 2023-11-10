@@ -30,6 +30,8 @@ import XMonad.Util.SpawnOnce
 myStartupHook = do
   -- spawnOnce "polybar top"
   adjustEventInput
+  -- enable tap-to-click
+  spawnOnce "xinput set-prop 'ELAN1201:00 04F3:3098 Touchpad' 'libinput Tapping Enabled' 1"
   -- tabletModeHook
   -- only call the function, when the environment variable "XMONAD_TEST_MODE" is set
   test_mode <- liftIO $ lookupEnv "XMONAD_TEST_MODE"
@@ -54,7 +56,7 @@ myStartupHook = do
       spawnOnce "pactl load-module module-bluetooth-policy"
       spawnOnce "pactl load-module module-switch-on-connect"
       spawnOnce "pactl load-module module-switch-on-port-available"
-      -- liftIO removeOldThumbnails
+  -- liftIO removeOldThumbnails
   spawnOnce "~/.autostart.sh"
   spawnOnce "launch-notification-manager"
   spawnOnce "xfce4-panel --disable-wm-check"
@@ -76,25 +78,25 @@ main = do
             $ withNavigation2DConfig myNavigation2DConfig
             $ rescreenHook
               def
-                { randrChangeHook = myRandrChangeHook,
-                  afterRescreenHook = myAfterRescreenHook
+                { randrChangeHook = myRandrChangeHook
+                , afterRescreenHook = myAfterRescreenHook
                 }
             $ def
-              { terminal = myTerminal,
-                focusFollowsMouse = myFocusFollowsMouse,
-                clickJustFocuses = myClickJustFocuses,
-                borderWidth = myBorderWidth,
-                modMask = myModMask,
-                workspaces = myWorkspaces,
-                normalBorderColor = myNormalBorderColor,
-                focusedBorderColor = myFocusedBorderColor,
-                mouseBindings = myMouseBindings,
-                layoutHook = myLayout,
-                manageHook = myManageHook,
-                handleEventHook = myEventHook,
-                startupHook = myStartupHook,
-                clientMask = myClientMask,
-                logHook = myLogHook
+              { terminal = myTerminal
+              , focusFollowsMouse = myFocusFollowsMouse
+              , clickJustFocuses = myClickJustFocuses
+              , borderWidth = myBorderWidth
+              , modMask = myModMask
+              , workspaces = myWorkspaces
+              , normalBorderColor = myNormalBorderColor
+              , focusedBorderColor = myFocusedBorderColor
+              , mouseBindings = myMouseBindings
+              , layoutHook = myLayout
+              , manageHook = myManageHook
+              , handleEventHook = myEventHook
+              , startupHook = myStartupHook
+              , clientMask = myClientMask
+              , logHook = myLogHook
               }
         )
    in launch myConfig dirs
