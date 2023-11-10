@@ -18,7 +18,7 @@
       url = "github:xmonad/xmonad-contrib";
       # inputs.nixpkgs.follows = "nixpkgs";
     };
-
+    nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
   };
 
   outputs = { self, nixpkgs, flake-utils, ... }@inputs:
@@ -28,6 +28,7 @@
           inherit system;
           overlays = [
             inputs.xmonad-contrib.overlay
+            inputs.nix-vscode-extensions.overlays.default
           ];
           config.allowBroken = true;
         };
@@ -105,6 +106,27 @@
         # create a defualt devshell
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
+            (vscode-with-extensions.override {
+              vscode = vscodium;
+              vscodeExtensions = with pkgs.vscode-marketplace; [
+                # HASKELL
+                haskell.haskell
+                justusadam.language-haskell
+                visortelle.haskell-spotlight
+                ucl.haskelly
+                phoityne.phoityne-vscode
+                # Copilot
+                github.copilot-labs
+                github.copilot
+                github.remotehub
+                github.copilot-chat
+                # VIM
+                vscodevim.vim
+                # NIX
+                bbenoist.nix
+                jnoortheen.nix-ide
+              ];
+            })
             haskell-language-server
             (pkgs.python310.withPackages (ps: with ps; [
               PyVirtualDisplay
