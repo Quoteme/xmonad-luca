@@ -181,6 +181,7 @@ myKeys config =
       , ("M-M1-S-<Down>", addName "Sublayout: pull window - down" $ sendMessage $ pullWindow D)
       , ("M-M1-S-<Up>", addName "Sublayout: pull window - up" $ sendMessage $ pullWindow U)
       , ("M-M1-S-<Right>", addName "Sublayout: pull window - right" $ sendMessage $ pullWindow R)
+      , ("M-M1-t", addName "LaptopMode: toggle tablet mode" $ toggleTabletMode)
       , ("M-t", addName "Sublayout: merge all" $ withFocused (sendMessage . MergeAll))
       , ("M-S-t", addName "Sublayout: unmerge" $ withFocused (sendMessage . UnMerge))
       , ("M-w", addName "Sublayout: unmerge" $ withFocused (sendMessage . UnMerge))
@@ -253,8 +254,7 @@ myKeys config =
       , ("<XF86AudioPrev>", addName "Media: previous" $ spawn "playerctl previous")
       , ("<XF86AudioPlay>", addName "Media: pause" $ spawn "playerctl play-pause")
       , ("<XF86Launch1>", addName "Workspace: debug" $ debugStackFullString >>= liftIO . Tio.writeFile "/tmp/xmonad_debug" . T.pack)
-      , -- , ("<XF86Launch3>", addName "Select color" $ spawn "xcolor | perl -pe 'chomp if eof' | xclip -selection clipboard")
-        ("<XF86Launch3>", addName "LaptopMode: toggle tablet mode" $ toggleTabletMode)
+      , ("<XF86Launch3>", addName "Select color" $ spawn "xcolor | perl -pe 'chomp if eof' | xclip -selection clipboard")
       , ("<XF86Launch4>", addName "Power profile: cycle" $ spawn "powerprofilesctl-cycle")
       , -- Workspace keys
         ("M-S-p", addName "Workspace: preview" $ spawn "xmonad-workspace-preview")
