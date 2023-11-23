@@ -84,7 +84,7 @@
           xfce.xfce4-whiskermenu-plugin
           xfce.xfce4-windowck-plugin
           xfce.xfce4-power-manager
-          xfce.xfce4-namebar-plugin
+          # xfce.xfce4-namebar-plugin
           xfce.xfce4-clipman-plugin
           (writeShellScriptBin "launch-notification-manager" ''
             						${pkgs.xfce.xfce4-notifyd}/lib/xfce4/notifyd/xfce4-notifyd
