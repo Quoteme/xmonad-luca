@@ -177,7 +177,7 @@
           buildPhase = ''
                         						mkdir build
                         						ln -sf $src/* build
-                        						ghc -o xmonad-luca Main.hs Utilities.hs -threaded -rtsopts -with-rtsopts=-N
+                        						ghc -o xmonad-luca Main.hs Utilities.hs Constants.hs -threaded -rtsopts -with-rtsopts=-N
             												'';
           installPhase = ''
                         						mkdir -p $out/bin

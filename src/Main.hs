@@ -13,7 +13,7 @@ import LaptopMode (tabletModeHook)
 import Layouts
 import Mousebindings
 import Options
-import System.Environment (lookupEnv)
+import System.Environment (lookupEnv, setEnv)
 import Thumbnail
 import XMonad
 import XMonad.Actions.Navigation2D
@@ -32,6 +32,7 @@ myStartupHook = do
   adjustEventInput
   -- enable tap-to-click
   spawnOnce "xinput set-prop 'ELAN1201:00 04F3:3098 Touchpad' 'libinput Tapping Enabled' 1"
+  liftIO $ setEnv "QT_QPA_PLATFORMTHEME" "qt5ct"
   -- tabletModeHook
   -- only call the function, when the environment variable "XMONAD_TEST_MODE" is set
   test_mode <- liftIO $ lookupEnv "XMONAD_TEST_MODE"
@@ -41,6 +42,7 @@ myStartupHook = do
     else do
       spawnOnce "light-locker --lock-on-lid"
       spawnOnce "/etc/nixos/scripts/xidlehook.sh"
+      -- spawnOnce "xfce4-power-manager --daemon"
       spawnOnce "sudo bluetooth off"
       spawnOnce "autoscreenrotation.sh &"
       spawnOnce "$(echo $(nix eval --raw nixos.polkit_gnome.outPath)/libexec/polkit-gnome-authentication-agent-1)"

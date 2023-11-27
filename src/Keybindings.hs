@@ -77,6 +77,8 @@ import XMonad.Util.Run (runProcessWithInput, spawnPipe)
 import XMonad.Util.SpawnOnce
 
 -- writeText will write a string to a file using data.Text
+
+import Constants qualified
 import Data.Text qualified as T
 import Data.Text.IO qualified as Tio
 
@@ -274,13 +276,25 @@ myKeys config =
  where
   -- Helper functions
   lowerMonBrigthness :: MonadIO m => m ()
-  lowerMonBrigthness = spawn "brightnessctl set 5%-"
+  lowerMonBrigthness = do
+    spawn "brightnessctl set 5%-"
+    currentBrightness <- runProcessWithInput "brightnessctl" ["get"] ""
+    spawn $ "notify-send 'Brightness' 'lowered to " ++ currentBrightness ++ "' --replace-id=" ++ show Constants.notificationBrightnessId
   raiseMonBrigthness :: MonadIO m => m ()
-  raiseMonBrigthness = spawn "brightnessctl set 5%+"
+  raiseMonBrigthness = do
+    spawn "brightnessctl set 5%+"
+    curr <- runProcessWithInput "brightnessctl" ["get"] ""
+    spawn $ "notify-send 'Brightness' 'raised to " ++ curr ++ "' --replace-id=" ++ show Constants.notificationBrightnessId
   lowerKbdBrigthness :: MonadIO m => m ()
-  lowerKbdBrigthness = spawn "brightnessctl --device=\"asus::kbd_backlight\" set 1-"
+  lowerKbdBrigthness = do
+    spawn "brightnessctl --device=\"asus::kbd_backlight\" set 1-"
+    curr <- runProcessWithInput "brightnessctl" ["--device=\"asus::kbd_backlight\"", "get"] ""
+    spawn $ "notify-send 'Keyboard Brightness' 'lowered to " ++ curr ++ "' --replace-id=" ++ show Constants.notificationBrightnessId
   raiseKbdBrigthness :: MonadIO m => m ()
-  raiseKbdBrigthness = spawn "brightnessctl --device=\"asus::kbd_backlight\" set 1+"
+  raiseKbdBrigthness = do
+    spawn "brightnessctl --device=\"asus::kbd_backlight\" set 1+"
+    curr <- runProcessWithInput "brightnessctl" ["--device=\"asus::kbd_backlight\"", "get"] ""
+    spawn $ "notify-send 'Keyboard Brightness' 'raised to " ++ curr ++ "' --replace-id=" ++ show Constants.notificationBrightnessId
   lowerAudio :: MonadIO m => m ()
   lowerAudio = spawn "pamixer --increase 5"
   raiseAudio :: MonadIO m => m ()
