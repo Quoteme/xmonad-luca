@@ -49,6 +49,7 @@
           xmonad-extras
           text-format-simple
           named
+          # containers_0_6_7
           # streamly
           # streamly-core
           # evdev
@@ -110,27 +111,27 @@
         # create a defualt devshell
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
-            (vscode-with-extensions.override {
-              vscode = vscodium;
-              vscodeExtensions = with pkgs.vscode-marketplace; [
-                # HASKELL
-                haskell.haskell
-                justusadam.language-haskell
-                visortelle.haskell-spotlight
-                ucl.haskelly
-                phoityne.phoityne-vscode
-                # Copilot
-                github.copilot-labs
-                github.copilot
-                github.remotehub
-                github.copilot-chat
-                # VIM
-                vscodevim.vim
-                # NIX
-                bbenoist.nix
-                jnoortheen.nix-ide
-              ];
-            })
+            # (vscode-with-extensions.override {
+            #   vscode = vscodium;
+            #   vscodeExtensions = with pkgs.vscode-marketplace; [
+            #     # HASKELL
+            #     haskell.haskell
+            #     justusadam.language-haskell
+            #     visortelle.haskell-spotlight
+            #     ucl.haskelly
+            #     phoityne.phoityne-vscode
+            #     # Copilot
+            #     github.copilot-labs
+            #     github.copilot
+            #     github.remotehub
+            #     github.copilot-chat
+            #     # VIM
+            #     vscodevim.vim
+            #     # NIX
+            #     bbenoist.nix
+            #     jnoortheen.nix-ide
+            #   ];
+            # })
             haskell-language-server
             (pkgs.python310.withPackages (ps: with ps; [
               PyVirtualDisplay
@@ -177,7 +178,7 @@
           buildPhase = ''
                         						mkdir build
                         						ln -sf $src/* build
-                        						ghc -o xmonad-luca Main.hs Utilities.hs Constants.hs -threaded -rtsopts -with-rtsopts=-N
+                        						ghc -o xmonad-luca Main.hs Utilities.hs Constants.hs Layouts/TreeLayout.hs -threaded -rtsopts -with-rtsopts=-N
             												'';
           installPhase = ''
                         						mkdir -p $out/bin

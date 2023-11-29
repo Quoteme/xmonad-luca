@@ -278,13 +278,15 @@ myKeys config =
   lowerMonBrigthness :: MonadIO m => m ()
   lowerMonBrigthness = do
     spawn "brightnessctl set 5%-"
-    currentBrightness <- runProcessWithInput "brightnessctl" ["get"] ""
-    spawn $ "notify-send 'Brightness' 'lowered to " ++ currentBrightness ++ "' --replace-id=" ++ show Constants.notificationBrightnessId
+    currentBrightnessStr <- runProcessWithInput "brightnessctl" ["get"] ""
+    let currentBrightness = read currentBrightnessStr :: Double
+    showProgress "Monitor Brightness" currentBrightness 256
   raiseMonBrigthness :: MonadIO m => m ()
   raiseMonBrigthness = do
     spawn "brightnessctl set 5%+"
-    curr <- runProcessWithInput "brightnessctl" ["get"] ""
-    spawn $ "notify-send 'Brightness' 'raised to " ++ curr ++ "' --replace-id=" ++ show Constants.notificationBrightnessId
+    currentBrightnessStr <- runProcessWithInput "brightnessctl" ["get"] ""
+    let currentBrightness = read currentBrightnessStr :: Double
+    showProgress "Monitor Brightness" currentBrightness 256
   lowerKbdBrigthness :: MonadIO m => m ()
   lowerKbdBrigthness = do
     spawn "brightnessctl --device=\"asus::kbd_backlight\" set 1-"
@@ -300,6 +302,34 @@ myKeys config =
   raiseAudio :: MonadIO m => m ()
   raiseAudio = spawn "pamixer --decrease 5"
   myUpdateFocus = updatePointer (0.5, 0.5) (0.1, 0.1)
+  -- \| Show a notificaiton about some progress with a small progress bar
+  showProgress :: MonadIO m => String -> Double -> Double -> m ()
+  showProgress title progress total = do
+    spawn $
+      "notify-send -u low '"
+        ++ title
+        ++ "' '"
+        ++ percentage progress total
+        ++ " "
+        ++ progressbar progress total 20
+        ++ "' --replace-id="
+        ++ show Constants.notificationBrightnessId
+  -- \| Calculate the percentage and display it
+  percentage :: Double -> Double -> String
+  percentage progress total = show (round $ (progress / total) * 100) ++ "%"
+  -- \| We are given a number `progress`, representing the current value we are at in a total of `total` values.
+  -- \| We produce a string of length `stringsize` representing a progress bar.
+  -- \|
+  -- \| example:
+  -- \| progressbar 5 10 10 == "[#####     ]"
+  -- \| progressbar 5 10 20 == "[##########          ]"
+  -- \| progressbar 5 10 5 == "[###  ]"
+  -- \|
+  -- \| We always round down
+  progressbar :: Double -> Double -> Int -> String
+  progressbar progress total stringsize = "[" ++ replicate filled '#' ++ replicate (stringsize - filled) '_' ++ "]"
+   where
+    filled = round $ (progress / total) * fromIntegral stringsize
 
 -- My additional keybindings
 -- Additional state needed

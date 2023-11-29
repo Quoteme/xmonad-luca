@@ -43,6 +43,7 @@ myStartupHook = do
       spawnOnce "light-locker --lock-on-lid"
       spawnOnce "/etc/nixos/scripts/xidlehook.sh"
       -- spawnOnce "xfce4-power-manager --daemon"
+      spawnOnce "touchegg"
       spawnOnce "sudo bluetooth off"
       spawnOnce "autoscreenrotation.sh &"
       spawnOnce "$(echo $(nix eval --raw nixos.polkit_gnome.outPath)/libexec/polkit-gnome-authentication-agent-1)"
