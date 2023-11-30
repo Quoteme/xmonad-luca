@@ -93,7 +93,3 @@ emptyTreeLayout =
     }
   where
     emptyTree = Node (WindowNode 0 0 RIGHT 0) []
-
--- | Check if an element is in our TreeLayout.
-check :: Eq a => a -> TreeLayout a -> Bool
-check x (TreeLayout tree) = WindowNode x `elem` tree

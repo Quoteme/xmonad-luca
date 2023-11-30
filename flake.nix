@@ -49,6 +49,7 @@
           xmonad-extras
           text-format-simple
           named
+          lens
           # containers_0_6_7
           # streamly
           # streamly-core
@@ -178,7 +179,7 @@
           buildPhase = ''
                         						mkdir build
                         						ln -sf $src/* build
-                        						ghc -o xmonad-luca Main.hs Utilities.hs Constants.hs Layouts/TreeLayout.hs -threaded -rtsopts -with-rtsopts=-N
+                        						ghc -o xmonad-luca Main.hs Utilities.hs Constants.hs Layouts/TreeLayout.hs Layouts/Helpers/Tree.hs -threaded -rtsopts -with-rtsopts=-N
             												'';
           installPhase = ''
                         						mkdir -p $out/bin
