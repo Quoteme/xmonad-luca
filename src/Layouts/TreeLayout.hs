@@ -4,7 +4,8 @@ module Layouts.TreeLayout
   )
 where
 
-import Data.Graph
+import Data.Maybe
+import Layouts.Helpers.Tree
 import XMonad
 import XMonad.StackSet
 
@@ -33,54 +34,55 @@ data Axis = RIGHT | LEFT | UP | DOWN
   deriving (Show, Read, Eq)
 
 -- | Container to store all the extra-data for a node in our [TreeLayout].
-data WindowNode a = WindowNode
-  { width :: Int,
-    height :: Int,
-    rotation :: Axis,
-    value :: a
+data WindowNode = WindowNode
+  { percentage :: Rational,
+    window :: Window
   }
   deriving (Show, Read)
 
--- | We define two [WindowNode]s to be equal if their [value]s are equal.
+-- | We define two [WindowNode]s to be equal if their [window]s are equal.
 -- |
 -- | In practice, this means we would consider two [WindowNode Window]s to be
 -- | equal if they store the same window.
--- |
--- | We consider two [WindowNode (Tree Window)]s to be equal if they store the same
-instance Eq a => Eq (WindowNode a) where
-  (==) :: WindowNode a -> WindowNode a -> Bool
-  (==) (WindowNode _ _ _ v1) (WindowNode _ _ _ v2) = v1 == v2
+instance Eq WindowNode where
+  (==) :: WindowNode -> WindowNode -> Bool
+  (==) (WindowNode _ v1) (WindowNode _ v2) = v1 == v2
 
-instance Functor WindowNode where
-  fmap :: (a -> b) -> WindowNode a -> WindowNode b
-  fmap f (WindowNode w h r v) = WindowNode w h r (f v)
-
-instance Foldable WindowNode where
-  foldr :: (a -> b -> b) -> b -> WindowNode a -> b
-  foldr f z (WindowNode _ _ _ v) = f v z
-
--- | A datatype to represent a tree layout of windows for XMonad.
-newtype TreeLayout a = TreeLayout
-  { tree :: Tree (WindowNode a)
+data BranchNode = BranchNode
+  { rotation :: Axis
   }
   deriving (Show, Read, Eq)
 
--- | Functor instance for our [TreeLayout].
-instance Functor TreeLayout where
-  fmap :: (a -> b) -> TreeLayout a -> TreeLayout b
-  fmap f (TreeLayout tree) = TreeLayout $ fmap (fmap f) tree
-
-instance Foldable TreeLayout where
-  foldr :: (a -> b -> b) -> b -> TreeLayout a -> b
-  foldr f z (TreeLayout tree) = foldr (flip (foldr f)) z tree
+-- | A datatype to represent a tree layout of windows for XMonad.
+data TreeLayout a = TreeLayout
+  { tree :: Tree BranchNode WindowNode,
+    defaultBranch :: BranchNode
+  }
+  deriving (Show, Read, Eq)
 
 instance LayoutClass TreeLayout Window where
   -- \| The name we give to our layout.
   description _ = "TreeLayout"
 
   -- \| This function will place the windows on the screen (some given [rect]).
-  doLayout (TreeLayout tree) rect stack = do
-    return (l, Just (TreeLayout tree))
+  doLayout (TreeLayout tree defaultBranch) rect stack = do
+    -- get the current desktop dimensions
+    let Rectangle sx sy sw sh = rect
+    -- get the currently focused window
+    let focused = XMonad.StackSet.focus stack
+    -- get all the windows in the stack
+    let windows = XMonad.StackSet.integrate stack
+    -- wrap each window in a [WindowNode]
+    let windowNodes = map (WindowNode 1) windows
+    -- add all new windows to the tree
+    let tree' = updateLeafs (fromMaybe defaultBranch) [] tree windowNodes
+    -- write the tree to a file
+    liftIO $ writeFile "/tmp/.xmonad-tree.txt" (show windowNodes ++ "\n" ++ show tree ++ "\n" ++ show tree')
+    -- define the new tree
+    let tree'' = fromMaybe tree tree'
+    -- calculate the new positions of the windows
+    let rects = layoutRects tree'' rect
+    return (l, Just (TreeLayout tree'' defaultBranch))
     where
       l = [(w, rect) | w <- [XMonad.StackSet.focus stack] ++ up stack ++ down stack]
 
@@ -92,4 +94,9 @@ emptyTreeLayout =
     { tree = emptyTree
     }
   where
-    emptyTree = Node (WindowNode 0 0 RIGHT 0) []
+    emptyTree = Branch (BranchNode RIGHT) []
+
+-- | Calculate the positions of all the windows using the given [TreeLayout].
+layoutRects :: Tree BranchNode WindowNode -> Rectangle -> [(Window, Rectangle)]
+layoutRects (Leaf wn) (Rectangle sx sy sw sh) = [(window wn, Rectangle sx sy sw sh)]
+layoutRects (Branch a bs) (Rectangle sx sy sw sh) = undefined
