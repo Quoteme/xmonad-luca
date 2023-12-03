@@ -5,6 +5,7 @@ module Layouts.TreeLayout
 where
 
 import Data.Maybe
+import Layouts.Helpers.Involution
 import Layouts.Helpers.Tree
 import XMonad
 import XMonad.StackSet
@@ -30,7 +31,7 @@ import XMonad.StackSet
 -- | [window2]
 -- | [window3]
 -- | [window4]
-data Axis = RIGHT | LEFT | UP | DOWN
+data Direction = RIGHT | LEFT | UP | DOWN
   deriving (Show, Read, Eq)
 
 -- | Container to store all the extra-data for a node in our [TreeLayout].
@@ -49,7 +50,7 @@ instance Eq WindowNode where
   (==) (WindowNode _ v1) (WindowNode _ v2) = v1 == v2
 
 data BranchNode = BranchNode
-  { rotation :: Axis
+  { rotation :: Direction
   }
   deriving (Show, Read, Eq)
 
@@ -76,15 +77,14 @@ instance LayoutClass TreeLayout Window where
     let windowNodes = map (WindowNode 1) windows
     -- add all new windows to the tree
     let tree' = updateLeafs (fromMaybe defaultBranch) [] tree windowNodes
-    -- write the tree to a file
-    liftIO $ writeFile "/tmp/.xmonad-tree.txt" (show windowNodes ++ "\n" ++ show tree ++ "\n" ++ show tree')
     -- define the new tree
     let tree'' = fromMaybe tree tree'
     -- calculate the new positions of the windows
     let rects = layoutRects tree'' rect
-    return (l, Just (TreeLayout tree'' defaultBranch))
-    where
-      l = [(w, rect) | w <- [XMonad.StackSet.focus stack] ++ up stack ++ down stack]
+    -- write the tree to a file for debugging
+    -- FIXME: remove this
+    liftIO $ writeFile "/tmp/.xmonad-tree.txt" (show windowNodes ++ "\n" ++ show tree ++ "\n" ++ show tree' ++ "\n" ++ show rects)
+    return (rects, Just (TreeLayout tree'' defaultBranch))
 
 -- | This is the starting point of our layout.
 -- | You want to include this in your [layoutHook].
@@ -97,6 +97,59 @@ emptyTreeLayout =
     emptyTree = Branch (BranchNode RIGHT) []
 
 -- | Calculate the positions of all the windows using the given [TreeLayout].
+-- | The algorithm used to calculate the positions is pretty simple:
+-- |
+-- | 1. We are always given a [Rectangle] to work with.
+-- |    This rectangle represents the dimensions the area we want to fill with
+-- |    our windows.
+-- | 2. We are also given a [Tree] of [WindowNode]s.
+-- |    This tree represents the windows we want to place in the given [Rectangle].
+-- |
+-- | If we are given a [Leaf] we simply place the window in the given [Rectangle]
+-- | and fill the entire area with it.
+-- |
+-- | If we are given a [Branch], we remember that it just consists of a list of
+-- | sub[Tree]s and some [BranchNode] data. We use the [BranchNode] data to
+-- | determine the direction of the split and then we split the [Rectangle] in
+-- | parts in that direction. We then recursively call [layoutRects] on each
+-- | sub[Tree] and each part of the [Rectangle] and combine the results.
 layoutRects :: Tree BranchNode WindowNode -> Rectangle -> [(Window, Rectangle)]
 layoutRects (Leaf wn) (Rectangle sx sy sw sh) = [(window wn, Rectangle sx sy sw sh)]
-layoutRects (Branch a bs) (Rectangle sx sy sw sh) = undefined
+layoutRects (Branch (BranchNode RIGHT) bs) r@(Rectangle sx sy sw sh) = result
+  where
+    -- \| We need to calculate some numbers before we can construct the
+    -- \| rectangle/window pairing
+    -- \|
+    -- \| 1. Number of subtrees in the branch
+    n = length bs
+    -- \| 2. The width given for each subtree
+    width :: Rational
+    width = fromIntegral sw / fromIntegral n
+    -- \| 3. An x-offset for each subtree
+    delta :: Int -> Position
+    delta i = fromIntegral i * floor width
+    -- \| 4. Define a helper function that gives us the i-th rectangle
+    ithRect :: Rectangle -> Int -> Rectangle
+    ithRect (Rectangle x' y' w' h') i = Rectangle (x' + delta i) y' (fromIntegral $ floor width) h'
+    -- \| 5. Apply [layoutRects] to each subtree
+    subRects = [layoutRects subtree (ithRect r i) | (i, subtree) <- zip [0 ..] bs]
+    -- \| 7. Lastly, we only need to flatten the list of lists of lists ... of rectangles
+    -- \| into a list of rectangles
+    result :: [(Window, Rectangle)]
+    result = concat subRects
+layoutRects b@(Branch (BranchNode LEFT) _) r = layoutRects (involution b) r
+layoutRects (Branch (BranchNode UP) bs) r@(Rectangle sx sy sw sh) = result
+  where
+    -- \| Just like in the [RIGHT] case, we need to do the same thing here,
+    -- \| but now we need to split the [Rectangle] vertically instead of
+    -- \| horizontally.
+    n = length bs
+    height :: Rational
+    height = fromIntegral sh / fromIntegral n
+    delta :: Int -> Position
+    delta i = fromIntegral i * floor height
+    ithRect :: Rectangle -> Int -> Rectangle
+    ithRect (Rectangle x' y' w' h') i = Rectangle x' (y' + delta i) w' (fromIntegral $ floor height)
+    subRects = [layoutRects subtree (ithRect r i) | (i, subtree) <- zip [0 ..] bs]
+    result :: [(Window, Rectangle)]
+    result = concat subRects

@@ -4,6 +4,7 @@ module Layouts.Helpers.Tree where
 
 import Control.Lens
 import Control.Lens.TH
+import Layouts.Helpers.Involution
 import Named
 
 data Tree a b = Branch a [Tree a b] | Leaf b
@@ -107,3 +108,25 @@ updateLeafs f p t bs = do
   t' <- removeLeafs (`notElem` bs) t
   -- add all values that are not in the tree as leafs
   addMissingAsLeafs f p t' bs
+
+-- | Reverse a tree.
+-- |
+-- | Example
+-- |
+-- |    A
+-- |   / \
+-- |  B   C
+-- |     / \
+-- |    D   E
+-- |
+-- | becomes
+-- |
+-- |    A
+-- |   / \
+-- |  C   B
+-- | / \
+-- | E   D
+instance Involution (Tree a b) where
+  involution :: Tree a b -> Tree a b
+  involution (Leaf b) = Leaf b
+  involution (Branch a bs) = Branch a (reverse $ map involution bs)
