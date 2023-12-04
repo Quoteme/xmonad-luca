@@ -9,8 +9,9 @@ import Data.Maybe
 import Layouts.Helpers.Direction
 import Layouts.Helpers.Involution
 import Layouts.Helpers.Tree
+import Text.Format
 import XMonad
-import XMonad.Layout.BinarySpacePartition (Rotate (Rotate))
+import XMonad.Layout.BinarySpacePartition (Rotate (Rotate), Swap (..))
 import XMonad.StackSet
 
 -- | Container to store all the extra-data for a node in our [TreeLayout].
@@ -59,7 +60,8 @@ instance LayoutClass TreeLayout Window where
     -- \| We can do that by using the [bimap] (or here the [second = bimap id]) function.
     let windowTree = second window tree
     let newpath = if isJust focused then fromMaybe [] $ find (fromJust focused) windowTree else []
-    let newpath' = if focused /= lastFocused then currentPath else newpath'
+    -- let newpath' = if focused /= lastFocused then currentPath else newpath'
+    let newpath' = if focused /= lastFocused then currentPath else newpath
     -- get all the windows in the stack
     let windows = XMonad.StackSet.integrate stack
     -- wrap each window in a [WindowNode]
@@ -71,24 +73,8 @@ instance LayoutClass TreeLayout Window where
     -- calculate the new positions of the windows
     let rects = layoutRects tree'' rect
     -- write the tree to a file for debugging
-    -- FIXME: remove this
-    xmessage $ "debug"
-    liftIO $
-      writeFile
-        "/tmp/.xmonad-tree.txt"
-        ( show windowNodes
-            ++ "\n"
-            ++ show tree
-            ++ "\n"
-            ++ show tree'
-            ++ "\n"
-            ++ show rects
-            ++ "\n"
-            ++ "\n"
-            -- ++ show newpath
-            -- ++ show newpath'
-        )
-    return (rects, Just (TreeLayout tree'' defaultBranch newpath' focused))
+    -- return $! (rects, Just (TreeLayout tree'' defaultBranch newpath' focused))
+    return (rects, Just (TreeLayout tree'' defaultBranch currentPath focused))
 
   -- \| This function is used to modify the layout using the keyboard.
   -- \| More generally, we actually modify the layout using "messages".
@@ -100,9 +86,15 @@ instance LayoutClass TreeLayout Window where
         -- \| 1. Rotate the branch at the given path
         -- \| We define a helper function [rotatetree]
         -- \| to rotate the branches counter-clockwise
-        let tree' = apply currentPath rotatetree tree
+        let tree' = apply [] rotatetree tree
         -- \| 2. Return the new layout
         return $ Just $ TreeLayout (fromMaybe tree tree') defaultBranch currentPath lastFocused
+    | Just Swap <- fromMessage someMessage = do
+        -- \| 1. Swap the branch at the given path
+        xmessage $ format "path: {0}" [show currentPath]
+        -- let tree' = apply currentPath swap tree
+        -- \| 2. Return the new layout
+        return $ Just $ TreeLayout tree defaultBranch currentPath lastFocused
     | otherwise = return Nothing
     where
       -- \| helper functions

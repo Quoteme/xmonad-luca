@@ -4,6 +4,7 @@ module Layouts.Helpers.Tree where
 
 import Control.Lens
 import Control.Lens.TH
+import Control.Monad
 import Data.Maybe
 import Layouts.Helpers.Involution
 import Named
@@ -45,18 +46,41 @@ pathExists (i : is) (Branch _ bs) = i < length bs && pathExists is (bs !! i)
 -- | Given an element which might be in a tree, find the path to that element.
 -- |
 -- | We use a depth-first search to find the path to the element.
+-- |
+-- | Example:
+-- | find 1 (Branch "a" []) = Nothing
+-- |
+-- | Example:
+-- | find 1 (Branch "a" [Branch "a" []]) = Nothing
+-- |
+-- | Example:
+-- | find 1 (Branch "a" [Branch "a" [], (Leaf 1)]) = Just [1]
+-- |
+-- | Example:
+-- | find 1 (Branch "a" [Branch "a" [(Leaf 1)], (Leaf 1)]) = Just [0, 0]
+-- |
+-- | Example:
+-- | find 1 (Leaf 1) = Just []
+-- |
+-- | Example:
+-- | find 3 (Branch 1 [Branch 2 [Leaf 3, Leaf 4], Leaf 5]) = Just [0, 0]
+-- |
+-- | Example (complex):
+-- | find 7 (
+-- | Branch "a" [Branch "b" [Leaf 1, Leaf 2], Branch "c" [Leaf 3, Branch "d" [Branch "e" [Leaf 4, Leaf 5], Branch "f" [Leaf 6, Leaf 7]]]]
+-- | ) = Just [1, 1, 1, 1]
 find :: Eq b => b -> Tree a b -> Maybe Path
-find b t = find' b [] t
+find b t = find' b t []
+
+-- | Helper function for [find]
+find' :: Eq b => b -> Tree a b -> Path -> Maybe Path
+find' b (Leaf x) path
+  | b == x = Just path
+  | otherwise = Nothing
+find' b (Branch _ bs) path = firstNonNothing
   where
-    -- \| This function is a helper function.
-    -- \| It performs a search but only on a subtree.
-    -- \| We also keep track of the path we took to get to the subtree.
-    find' :: Eq b => b -> Path -> Tree a b -> Maybe Path
-    find' b p (Leaf b') = if b == b' then Just p else Nothing
-    -- \| We go through each subtree in the branch, and add its index to the path.
-    -- \| If we find the element in the subtree, we return the path.
-    -- \| Remember: We have found the subtree, if have found a non-Nothing value.
-    find' b p (Branch _ bs) = listToMaybe $ mapMaybe (\(i, b') -> find' b (p ++ [i]) b') (zip [0 ..] bs)
+    foundInSublist = [find' b sub (path ++ [i]) | (i, sub) <- zip [0 ..] bs]
+    firstNonNothing = listToMaybe $ catMaybes foundInSublist
 
 -- | Get the subtree at the given path
 cut :: Path -> Tree a b -> Maybe (Tree a b)
