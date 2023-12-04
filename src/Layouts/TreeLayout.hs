@@ -4,35 +4,14 @@ module Layouts.TreeLayout
   )
 where
 
+import Data.Bifunctor
 import Data.Maybe
+import Layouts.Helpers.Direction
 import Layouts.Helpers.Involution
 import Layouts.Helpers.Tree
 import XMonad
+import XMonad.Layout.BinarySpacePartition (Rotate (Rotate))
 import XMonad.StackSet
-
--- | A datatype to represent the direction of a split in a [Node] of our [TreeLayout
--- |
--- | Example:
--- |
--- | Right:
--- | [window1] [window2] [window3] [window4]
--- |
--- | Left:
--- | [window4] [window3] [window2] [window1]
--- |
--- | Up:
--- | [window4]
--- | [window3]
--- | [window2]
--- | [window1]
--- |
--- | Down:
--- | [window1]
--- | [window2]
--- | [window3]
--- | [window4]
-data Direction = RIGHT | LEFT | UP | DOWN
-  deriving (Show, Read, Eq)
 
 -- | Container to store all the extra-data for a node in our [TreeLayout].
 data WindowNode = WindowNode
@@ -57,7 +36,8 @@ data BranchNode = BranchNode
 -- | A datatype to represent a tree layout of windows for XMonad.
 data TreeLayout a = TreeLayout
   { tree :: Tree BranchNode WindowNode,
-    defaultBranch :: BranchNode
+    defaultBranch :: BranchNode,
+    currentPath :: Path
   }
   deriving (Show, Read, Eq)
 
@@ -66,7 +46,7 @@ instance LayoutClass TreeLayout Window where
   description _ = "TreeLayout"
 
   -- \| This function will place the windows on the screen (some given [rect]).
-  doLayout (TreeLayout tree defaultBranch) rect stack = do
+  doLayout (TreeLayout tree defaultBranch currentPath) rect stack = do
     -- get the current desktop dimensions
     let Rectangle sx sy sw sh = rect
     -- get the currently focused window
@@ -84,7 +64,42 @@ instance LayoutClass TreeLayout Window where
     -- write the tree to a file for debugging
     -- FIXME: remove this
     liftIO $ writeFile "/tmp/.xmonad-tree.txt" (show windowNodes ++ "\n" ++ show tree ++ "\n" ++ show tree' ++ "\n" ++ show rects)
-    return (rects, Just (TreeLayout tree'' defaultBranch))
+    return (rects, Just (TreeLayout tree'' defaultBranch currentPath))
+
+  -- \| This function is used to modify the layout using the keyboard.
+  -- \| More generally, we actually modify the layout using "messages".
+  -- \| Most of the time, a message is send by pressing a key combination though, like so:
+  -- \|
+  -- \| > ((modMask, xK_r), sendMessage $ Rotate)
+  handleMessage (TreeLayout tree defaultBranch currentPath) someMessage
+    | Just Rotate <- fromMessage someMessage = do
+        -- \| 1. `get` the currently focused window from the X-monad
+        focused <- gets (peek . windowset) :: X (Maybe Window)
+        -- \| 2. Find the path to the currently focused window
+        -- \| If no window is focused, we just use the root of the tree
+        -- \|
+        -- \| To be able to search for a window, we first need to convert our [Tree BranchNode WindowNode]
+        -- \| to a [Tree BranchNode Window]. This is, because we search a [Window] and not a [WindowNode].
+        -- \| We can do that by using the [bimap] (or here the [second = bimap id]) function.
+        let windowTree = second window tree
+        let path = if isJust focused then fromMaybe [] $ find (fromJust focused) windowTree else []
+        -- \| We actually want to rotate the branch of the currently focused window
+        -- \| And not the leaf where the window is stored. Therefor we need to remove the last element
+        -- \| from the path.
+        let path' = if null path then [] else init path
+        -- \| 3. Rotate the branch at the given path
+        -- \| We define a helper function [rotatetree]
+        -- \| to rotate the branches counter-clockwise
+        let tree' = apply path' rotatetree tree
+        -- \| 4. Return the new layout
+        return $ Just $ TreeLayout (fromMaybe tree tree') defaultBranch currentPath
+    | otherwise = return Nothing
+    where
+      -- \| helper functions
+      -- \|
+      -- \| Rotate a tree counter clockwise
+      rotatetree :: Tree BranchNode WindowNode -> Tree BranchNode WindowNode
+      rotatetree t = first (\w -> BranchNode (rotateCCW $ rotation w)) t
 
 -- | This is the starting point of our layout.
 -- | You want to include this in your [layoutHook].
@@ -137,6 +152,7 @@ layoutRects (Branch (BranchNode RIGHT) bs) r@(Rectangle sx sy sw sh) = result
     -- \| into a list of rectangles
     result :: [(Window, Rectangle)]
     result = concat subRects
+-- FIXME: This currently causes XMonad to crash
 layoutRects b@(Branch (BranchNode LEFT) _) r = layoutRects (involution b) r
 layoutRects (Branch (BranchNode UP) bs) r@(Rectangle sx sy sw sh) = result
   where

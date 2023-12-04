@@ -4,6 +4,7 @@ module Layouts.Helpers.Tree where
 
 import Control.Lens
 import Control.Lens.TH
+import Data.Maybe
 import Layouts.Helpers.Involution
 import Named
 
@@ -40,6 +41,22 @@ type Path = [Int]
 pathExists :: Path -> Tree a b -> Bool
 pathExists [] _ = True
 pathExists (i : is) (Branch _ bs) = i < length bs && pathExists is (bs !! i)
+
+-- | Given an element which might be in a tree, find the path to that element.
+-- |
+-- | We use a depth-first search to find the path to the element.
+find :: Eq b => b -> Tree a b -> Maybe Path
+find b t = find' b [] t
+  where
+    -- \| This function is a helper function.
+    -- \| It performs a search but only on a subtree.
+    -- \| We also keep track of the path we took to get to the subtree.
+    find' :: Eq b => b -> Path -> Tree a b -> Maybe Path
+    find' b p (Leaf b') = if b == b' then Just p else Nothing
+    -- \| We go through each subtree in the branch, and add its index to the path.
+    -- \| If we find the element in the subtree, we return the path.
+    -- \| Remember: We have found the subtree, if have found a non-Nothing value.
+    find' b p (Branch _ bs) = listToMaybe $ mapMaybe (\(i, b') -> find' b (p ++ [i]) b') (zip [0 ..] bs)
 
 -- | Get the subtree at the given path
 cut :: Path -> Tree a b -> Maybe (Tree a b)
@@ -108,6 +125,15 @@ updateLeafs f p t bs = do
   t' <- removeLeafs (`notElem` bs) t
   -- add all values that are not in the tree as leafs
   addMissingAsLeafs f p t' bs
+
+-- | Apply a function to a subtree at a given path
+apply :: Path -> (Tree a b -> Tree a b) -> Tree a b -> Maybe (Tree a b)
+apply [] f t = Just $ f t
+apply (i : is) f (Branch a bs) = do
+  b <- bs ^? ix i
+  b' <- apply is f b
+  return $ Branch a (bs & ix i .~ b')
+apply _ _ _ = Nothing
 
 -- | Reverse a tree.
 -- |
