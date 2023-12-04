@@ -37,7 +37,9 @@ rotateCCW DOWN = RIGHT
 
 -- | Rotation function for [Direction]s representing a clockwise rotation.
 rotateCW :: Direction -> Direction
-rotateCW RIGHT = DOWN
-rotateCW DOWN = LEFT
-rotateCW LEFT = UP
-rotateCW UP = RIGHT
+rotateCW = rotateCCW . rotateCCW . rotateCCW
+
+-- rotateCW RIGHT = DOWN
+-- rotateCW DOWN = LEFT
+-- rotateCW LEFT = UP
+-- rotateCW UP = RIGHT

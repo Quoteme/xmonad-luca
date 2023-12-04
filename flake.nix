@@ -67,6 +67,7 @@
           xdotool
           imagemagick
           xorg.xinput
+          xorg.xmessage
           libnotify
           libinput
           xfce.xfce4-panel

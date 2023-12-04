@@ -37,7 +37,8 @@ data BranchNode = BranchNode
 data TreeLayout a = TreeLayout
   { tree :: Tree BranchNode WindowNode,
     defaultBranch :: BranchNode,
-    currentPath :: Path
+    currentPath :: Path,
+    lastFocused :: Maybe Window
   }
   deriving (Show, Read, Eq)
 
@@ -46,11 +47,19 @@ instance LayoutClass TreeLayout Window where
   description _ = "TreeLayout"
 
   -- \| This function will place the windows on the screen (some given [rect]).
-  doLayout (TreeLayout tree defaultBranch currentPath) rect stack = do
+  doLayout (TreeLayout tree defaultBranch currentPath lastFocused) rect stack = do
     -- get the current desktop dimensions
     let Rectangle sx sy sw sh = rect
     -- get the currently focused window
-    let focused = XMonad.StackSet.focus stack
+    focused <- gets (peek . windowset) :: X (Maybe Window)
+    -- if the focused window has changed from the last time, we want to recalculate the currentPath
+    -- \| To be able to search for our focused window, we first need to convert our
+    -- \| [Tree BranchNode WindowNode] to a [Tree BranchNode Window].
+    -- \| This is, because we search a [Window] and not a [WindowNode].
+    -- \| We can do that by using the [bimap] (or here the [second = bimap id]) function.
+    let windowTree = second window tree
+    let newpath = if isJust focused then fromMaybe [] $ find (fromJust focused) windowTree else []
+    let newpath' = if focused /= lastFocused then currentPath else newpath'
     -- get all the windows in the stack
     let windows = XMonad.StackSet.integrate stack
     -- wrap each window in a [WindowNode]
@@ -63,36 +72,37 @@ instance LayoutClass TreeLayout Window where
     let rects = layoutRects tree'' rect
     -- write the tree to a file for debugging
     -- FIXME: remove this
-    liftIO $ writeFile "/tmp/.xmonad-tree.txt" (show windowNodes ++ "\n" ++ show tree ++ "\n" ++ show tree' ++ "\n" ++ show rects)
-    return (rects, Just (TreeLayout tree'' defaultBranch currentPath))
+    xmessage $ "debug"
+    liftIO $
+      writeFile
+        "/tmp/.xmonad-tree.txt"
+        ( show windowNodes
+            ++ "\n"
+            ++ show tree
+            ++ "\n"
+            ++ show tree'
+            ++ "\n"
+            ++ show rects
+            ++ "\n"
+            ++ "\n"
+            -- ++ show newpath
+            -- ++ show newpath'
+        )
+    return (rects, Just (TreeLayout tree'' defaultBranch newpath' focused))
 
   -- \| This function is used to modify the layout using the keyboard.
   -- \| More generally, we actually modify the layout using "messages".
   -- \| Most of the time, a message is send by pressing a key combination though, like so:
   -- \|
   -- \| > ((modMask, xK_r), sendMessage $ Rotate)
-  handleMessage (TreeLayout tree defaultBranch currentPath) someMessage
+  handleMessage (TreeLayout tree defaultBranch currentPath lastFocused) someMessage
     | Just Rotate <- fromMessage someMessage = do
-        -- \| 1. `get` the currently focused window from the X-monad
-        focused <- gets (peek . windowset) :: X (Maybe Window)
-        -- \| 2. Find the path to the currently focused window
-        -- \| If no window is focused, we just use the root of the tree
-        -- \|
-        -- \| To be able to search for a window, we first need to convert our [Tree BranchNode WindowNode]
-        -- \| to a [Tree BranchNode Window]. This is, because we search a [Window] and not a [WindowNode].
-        -- \| We can do that by using the [bimap] (or here the [second = bimap id]) function.
-        let windowTree = second window tree
-        let path = if isJust focused then fromMaybe [] $ find (fromJust focused) windowTree else []
-        -- \| We actually want to rotate the branch of the currently focused window
-        -- \| And not the leaf where the window is stored. Therefor we need to remove the last element
-        -- \| from the path.
-        let path' = if null path then [] else init path
-        -- \| 3. Rotate the branch at the given path
+        -- \| 1. Rotate the branch at the given path
         -- \| We define a helper function [rotatetree]
         -- \| to rotate the branches counter-clockwise
-        let tree' = apply path' rotatetree tree
-        -- \| 4. Return the new layout
-        return $ Just $ TreeLayout (fromMaybe tree tree') defaultBranch currentPath
+        let tree' = apply currentPath rotatetree tree
+        -- \| 2. Return the new layout
+        return $ Just $ TreeLayout (fromMaybe tree tree') defaultBranch currentPath lastFocused
     | otherwise = return Nothing
     where
       -- \| helper functions
@@ -106,7 +116,10 @@ instance LayoutClass TreeLayout Window where
 emptyTreeLayout :: TreeLayout Window
 emptyTreeLayout =
   TreeLayout
-    { tree = emptyTree
+    { tree = emptyTree,
+      defaultBranch = BranchNode RIGHT,
+      currentPath = [],
+      lastFocused = Nothing
     }
   where
     emptyTree = Branch (BranchNode RIGHT) []
