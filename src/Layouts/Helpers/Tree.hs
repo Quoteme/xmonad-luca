@@ -9,7 +9,7 @@ import Data.Maybe
 import Layouts.Helpers.Involution
 import Named
 
-data Tree a b = Branch a [Tree a b] | Leaf b
+data Tree a b = Branch {branchData :: a, trunk :: [Tree a b]} | Leaf b
   deriving (Read, Eq)
 
 $(makePrisms ''Tree)
@@ -176,7 +176,7 @@ apply _ _ _ = Nothing
 -- |  C   B
 -- | / \
 -- | E   D
-instance Involution (Tree a b) where
+instance Involutive (Tree a b) where
   involution :: Tree a b -> Tree a b
   involution (Leaf b) = Leaf b
   involution (Branch a bs) = Branch a (reverse $ map involution bs)

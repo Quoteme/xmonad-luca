@@ -21,15 +21,17 @@ module Layouts.Helpers.Direction where
 -- | [window2]
 -- | [window3]
 -- | [window4]
-data Direction = RIGHT | LEFT | UP | DOWN
+data Direction = RIGHT | LEFT | UP | DOWN | FRONT | BACK
   deriving (Show, Read, Eq)
 
 -- | Rotation function for [Direction]s representing a counter-clockwise rotation.
 rotateCCW :: Direction -> Direction
 rotateCCW RIGHT = UP
-rotateCCW UP = RIGHT
-rotateCCW LEFT = UP
+rotateCCW UP = LEFT
+rotateCCW LEFT = DOWN
 rotateCCW DOWN = RIGHT
+rotateCCW FRONT = FRONT
+rotateCCW BACK = BACK
 
 -- rotateCCW UP = LEFT
 -- rotateCCW LEFT = DOWN

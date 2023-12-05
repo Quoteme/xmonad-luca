@@ -158,7 +158,7 @@ layoutRects (Branch (BranchNode RIGHT) bs) r@(Rectangle sx sy sw sh) = result
     result :: [(Window, Rectangle)]
     result = concat subRects
 -- FIXME: This currently causes XMonad to crash
-layoutRects b@(Branch (BranchNode LEFT) _) r = layoutRects (involution b) r
+layoutRects b@(Branch (BranchNode LEFT) _) r = layoutRects (Branch (BranchNode RIGHT) (trunk $ involution b)) r
 layoutRects (Branch (BranchNode UP) bs) r@(Rectangle sx sy sw sh) = result
   where
     -- \| Just like in the [RIGHT] case, we need to do the same thing here,
@@ -174,3 +174,6 @@ layoutRects (Branch (BranchNode UP) bs) r@(Rectangle sx sy sw sh) = result
     subRects = [layoutRects subtree (ithRect r i) | (i, subtree) <- zip [0 ..] bs]
     result :: [(Window, Rectangle)]
     result = concat subRects
+layoutRects b@(Branch (BranchNode DOWN) _) r = layoutRects (Branch (BranchNode UP) (trunk $ involution b)) r
+
+-- FIXME: Implement FRONT and BACK for stacked windows
