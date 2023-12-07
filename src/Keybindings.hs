@@ -256,7 +256,8 @@ myKeys config =
       , ("<XF86AudioPrev>", addName "Media: previous" $ spawn "playerctl previous")
       , ("<XF86AudioPlay>", addName "Media: pause" $ spawn "playerctl play-pause")
       , ("<XF86Launch1>", addName "Workspace: debug" $ debugStackFullString >>= liftIO . Tio.writeFile "/tmp/xmonad_debug" . T.pack)
-      , ("<XF86Launch3>", addName "Select color" $ spawn "xcolor | perl -pe 'chomp if eof' | xclip -selection clipboard")
+      , -- , ("<XF86Launch3>", addName "Select color" $ spawn "xcolor | perl -pe 'chomp if eof' | xclip -selection clipboard")
+        ("<XF86Launch3>", addName "Speach to text" $ spawn "whisper-input")
       , ("<XF86Launch4>", addName "Power profile: cycle" $ spawn "powerprofilesctl-cycle")
       , -- Workspace keys
         ("M-S-p", addName "Workspace: preview" $ spawn "xmonad-workspace-preview")

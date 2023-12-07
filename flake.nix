@@ -18,6 +18,10 @@
       url = "github:xmonad/xmonad-contrib";
       # inputs.nixpkgs.follows = "nixpkgs";
     };
+    whisper-input = {
+      url = "github:quoteme/whisper-input";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
   };
 
@@ -98,6 +102,7 @@
           brightnessctl
           inputs.screenrotate.defaultPackage.x86_64-linux
           inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
+          inputs.whisper-input.defaultPackage.x86_64-linux
           pamixer
           pulseaudio
           xmonadctl
