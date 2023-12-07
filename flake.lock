@@ -548,11 +548,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1701913795,
-        "narHash": "sha256-wt32kknj7zkUF3MaEUZBKtfdmmuT/urIYWajkQ7tXVM=",
+        "lastModified": 1701978359,
+        "narHash": "sha256-FyvIckvXmgPz6eoiuxaqzxrq3pYFyRQqlLVY1S2etCY=",
         "owner": "quoteme",
         "repo": "whisper-input",
-        "rev": "538ea7be21562c12f5cdb5d1d3f234f51466dd8b",
+        "rev": "2ddac6100928297dab028446ef8dc9b17325b833",
         "type": "github"
       },
       "original": {
