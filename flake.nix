@@ -20,7 +20,7 @@
     };
     whisper-input = {
       url = "github:quoteme/whisper-input";
-      inputs.nixpkgs.follows = "nixpkgs";
+      # inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
   };
