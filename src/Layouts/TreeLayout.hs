@@ -4,14 +4,20 @@ module Layouts.TreeLayout
   )
 where
 
+import Control.Monad
 import Data.Bifunctor
+import Data.Bits
+import Data.Colour.RGBSpace
+import Data.Colour.RGBSpace.HSV
+import Data.List (inits)
 import Data.Maybe
 import Layouts.Helpers.Direction
 import Layouts.Helpers.Involution
 import Layouts.Helpers.Tree
+import Safe
 import Text.Format
 import XMonad
-import XMonad.Layout.BinarySpacePartition (Rotate (Rotate), Swap (..))
+import XMonad.Layout.BinarySpacePartition (Rotate (Rotate), SelectMoveNode (..), Swap (..))
 import XMonad.StackSet
 
 -- | Container to store all the extra-data for a node in our [TreeLayout].
@@ -53,28 +59,59 @@ instance LayoutClass TreeLayout Window where
     let Rectangle sx sy sw sh = rect
     -- get the currently focused window
     focused <- gets (peek . windowset) :: X (Maybe Window)
-    -- if the focused window has changed from the last time, we want to recalculate the currentPath
-    -- \| To be able to search for our focused window, we first need to convert our
-    -- \| [Tree BranchNode WindowNode] to a [Tree BranchNode Window].
-    -- \| This is, because we search a [Window] and not a [WindowNode].
-    -- \| We can do that by using the [bimap] (or here the [second = bimap id]) function.
-    let windowTree = second window tree
-    let newpath = if isJust focused then fromMaybe [] $ find (fromJust focused) windowTree else []
-    -- let newpath' = if focused /= lastFocused then currentPath else newpath'
-    let newpath' = if focused /= lastFocused then currentPath else newpath
     -- get all the windows in the stack
     let windows = XMonad.StackSet.integrate stack
     -- wrap each window in a [WindowNode]
     let windowNodes = map (WindowNode 1) windows
     -- add all new windows to the tree
-    let tree' = updateLeafs (fromMaybe defaultBranch) [] tree windowNodes
+    let tree' = clean <$> updateLeafs (fromMaybe defaultBranch) (initDef [] currentPath) tree windowNodes
     -- define the new tree
     let tree'' = fromMaybe tree tree'
+    -- if the focused window has changed from the last time, we want to recalculate the currentPath
+    -- \| To be able to search for our focused window, we first need to convert our
+    -- \| [Tree BranchNode WindowNode] to a [Tree BranchNode Window].
+    -- \| This is, because we search a [Window] and not a [WindowNode].
+    -- \| We can do that by using the [bimap] (or here the [second = bimap id]) function.
+    let windowTree = second window tree''
+    let newpath = if isJust focused then fromMaybe [] $ find (fromJust focused) windowTree else []
+    -- let newpath' = if focused /= lastFocused then currentPath else newpath
+    let newpath' = newpath
     -- calculate the new positions of the windows
     let rects = layoutRects tree'' rect
+    -- draw a colorful rectangle around the focused window
+    -- the saturation of the border is dependent on the depth of the focused window
+    -- the deeper the window, the more saturated the border
+    --
+    -- 1. We get all the partial paths of the current path
+    --    Example: [1,2,3] -> [[1],[1,2],[1,2,3]]
+    -- let partialPaths = (tail . inits) newpath'
+    let partialPaths = inits newpath'
+    forM_ partialPaths $ \subpath -> do
+      withDisplay $ \dpy -> do
+        -- 2. We get the depth of the current path
+        let depth = length subpath
+        -- 3. We calculate the saturation of the border
+        -- This must be a value between 0 and 1
+        let relativeDepth = (fromIntegral depth + 1) / (fromIntegral (length newpath') + 1)
+        -- let pixel = createPixel (RGB 255 0 0)
+        -- run `setWindowBorder` for each window the the subtree spanned by the subpath
+        let subtree = cut subpath tree
+        case subtree of
+          -- if the subpath actually leads to a subtree, we use the Foldable
+          -- instance of our tree to run `setWindowBorder` for each window in the subtree
+          Just t -> forM_ (zip [1 ..] windows) $ \(i, w) -> io $ setWindowBorder dpy (window w) (pixel i)
+            where
+              windows = (foldr (:) [] t)
+              n = length windows
+              -- \| value between 0 and 255
+              hue' :: Int -> Double
+              hue' i = (fromIntegral i / fromIntegral n) * 255
+              -- TODO: Use HSL instead of HSV
+              pixel :: Int -> Pixel
+              pixel i = createPixel $ round <$> hsv (hue' i) (1 :: Double) (255 * relativeDepth * 0.75 :: Double)
+          Nothing -> return ()
     -- write the tree to a file for debugging
-    -- return $! (rects, Just (TreeLayout tree'' defaultBranch newpath' focused))
-    return (rects, Just (TreeLayout tree'' defaultBranch currentPath focused))
+    return $! (rects, Just (TreeLayout tree'' defaultBranch newpath' focused))
 
   -- \| This function is used to modify the layout using the keyboard.
   -- \| More generally, we actually modify the layout using "messages".
@@ -86,15 +123,29 @@ instance LayoutClass TreeLayout Window where
         -- \| 1. Rotate the branch at the given path
         -- \| We define a helper function [rotatetree]
         -- \| to rotate the branches counter-clockwise
-        let tree' = apply [] rotatetree tree
+        let tree' = apply (initDef [] currentPath) rotatetree tree
         -- \| 2. Return the new layout
         return $ Just $ TreeLayout (fromMaybe tree tree') defaultBranch currentPath lastFocused
     | Just Swap <- fromMessage someMessage = do
         -- \| 1. Swap the branch at the given path
-        xmessage $ format "path: {0}" [show currentPath]
+        xmessage $ format "path: {0},\ntree: {1}" [(show currentPath), (show tree)]
         -- let tree' = apply currentPath swap tree
         -- \| 2. Return the new layout
         return $ Just $ TreeLayout tree defaultBranch currentPath lastFocused
+    | Just SelectNode <- fromMessage someMessage = do
+        -- \| 1. Swap the branch at the given path
+        -- \| This means, we want to transform a `Leaf a` into a `Branch defaultBranch [Leaf a]`
+        -- \| And we want to transform a `Branch defaultBranch [Leaf a]` into a `Leaf a`
+        let tree' =
+              if null currentPath
+                then tree
+                else tree `fromMaybe` apply currentPath (swaptree defaultBranch) tree
+        let currentPath' = currentPath ++ [0]
+        -- let currentPath' = case cut currentPath tree of
+        --       Just (Leaf _) -> init currentPath ++ [0]
+        --       _ -> initDef [] currentPath
+        -- \| 2. Return the new layout
+        return $ Just $ TreeLayout tree' defaultBranch currentPath' lastFocused
     | otherwise = return Nothing
     where
       -- \| helper functions
@@ -102,6 +153,11 @@ instance LayoutClass TreeLayout Window where
       -- \| Rotate a tree counter clockwise
       rotatetree :: Tree BranchNode WindowNode -> Tree BranchNode WindowNode
       rotatetree t = first (\w -> BranchNode (rotateCCW $ rotation w)) t
+      -- \| Swap a tree
+      swaptree :: BranchNode -> Tree BranchNode WindowNode -> Tree BranchNode WindowNode
+      -- swaptree defaultBranch (Leaf w) = Branch defaultBranch [Leaf w]
+      -- swaptree defaultBranch (Branch _ [Leaf w]) = Leaf w
+      swaptree d b = Branch d [b]
 
 -- | This is the starting point of our layout.
 -- | You want to include this in your [layoutHook].
@@ -176,4 +232,8 @@ layoutRects (Branch (BranchNode UP) bs) r@(Rectangle sx sy sw sh) = result
     result = concat subRects
 layoutRects b@(Branch (BranchNode DOWN) _) r = layoutRects (Branch (BranchNode UP) (trunk $ involution b)) r
 
--- FIXME: Implement FRONT and BACK for stacked windows
+-- | Simple function to create a pixel from RGB values
+-- |
+-- | Each value should be in the range [0, 255]
+createPixel :: RGB Int -> Pixel
+createPixel (RGB r g b) = fromIntegral (r `shiftL` 16 .|. g `shiftL` 8 .|. b)

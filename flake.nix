@@ -50,6 +50,8 @@
           text-format-simple
           named
           lens
+          colour
+          safe
           # containers_0_6_7
           # streamly
           # streamly-core

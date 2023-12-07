@@ -180,3 +180,24 @@ instance Involutive (Tree a b) where
   involution :: Tree a b -> Tree a b
   involution (Leaf b) = Leaf b
   involution (Branch a bs) = Branch a (reverse $ map involution bs)
+
+-- | Clean a tree by removing all branches that have no leafs
+-- |
+-- | Example
+-- |
+-- | clean ( Branch "a" [Branch "b" [Leaf 1, Leaf 2], Branch "c" [Branch "d" [], Branch "e" []]] )
+-- | =
+-- | Branch "a" [Branch "b" [Leaf 1, Leaf 2]]
+-- |
+-- | Example
+-- |
+-- | clean ( Branch "a" [Branch "b" [Leaf 2, Leaf 3]] )
+-- | =
+-- | Branch "b" [Leaf 2, Leaf 3]
+clean :: Tree a b -> Tree a b
+clean (Leaf b) = Leaf b
+clean (Branch a [Branch a' x]) = clean $ Branch a' x
+clean (Branch a bs) = Branch a (filter (not . emptyBranch) $ map clean bs)
+  where
+    emptyBranch (Leaf _) = False
+    emptyBranch (Branch _ bs) = all emptyBranch bs

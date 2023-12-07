@@ -52,7 +52,7 @@ myNavigation2DConfig =
 -- My Layouts
 myLayout =
   avoidStruts myTabletMode
-    ||| avoidStruts emptyTreeLayout
+    ||| (smartBorders . hiddenWindows . maximize . minimize . BW.boringWindows . avoidStruts) emptyTreeLayout
     ||| myFullscreen
   where
     -- TODO: add tabs to this layout
