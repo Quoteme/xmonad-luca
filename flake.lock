@@ -534,11 +534,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1701913045,
-        "narHash": "sha256-cOB9IkcOZbbaifc6H/uOkdzPWNjCubmOkB79vANhhMY=",
+        "lastModified": 1701913795,
+        "narHash": "sha256-wt32kknj7zkUF3MaEUZBKtfdmmuT/urIYWajkQ7tXVM=",
         "owner": "quoteme",
         "repo": "whisper-input",
-        "rev": "efef5e83bd1e1dc656eb92facf8df84836156cda",
+        "rev": "538ea7be21562c12f5cdb5d1d3f234f51466dd8b",
         "type": "github"
       },
       "original": {
