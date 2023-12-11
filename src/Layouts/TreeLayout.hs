@@ -63,10 +63,30 @@ instance LayoutClass TreeLayout Window where
     let windows = XMonad.StackSet.integrate stack
     -- wrap each window in a [WindowNode]
     let windowNodes = map (WindowNode 1) windows
+    let tree' = do
+          -- -- remove all windows that are not in the stack
+          -- oldWindowsRemoved <- removeLeafs (`notElem` windowNodes) tree
+          -- let newWindows = [w | w <- windowNodes, w `notElem` tree]
+          -- -- make room for the new windows
+          -- current <- percentages currentPath oldWindowsRemoved
+          -- let want = current / fromIntegral (length newWindows)
+          -- -- calculate the factor by which we need to multiply the percentages
+          -- -- of each window in the current path to make them add up to 1-want
+          -- let factor = (current - want) / current
+          -- freedTree <- applyPercentages factor currentPath oldWindowsRemoved
+          -- let newWindows' = map (\w -> w {percentage = want}) newWindows
+          -- -- now we only need to add the new windows to the tree
+          -- addAsLeafs (const defaultBranch) currentPath freedTree newWindows'
+          updateLeafs (fromMaybe defaultBranch) (initDef [] currentPath) tree windowNodes
     -- add all new windows to the tree
-    let tree' = clean <$> updateLeafs (fromMaybe defaultBranch) (initDef [] currentPath) tree windowNodes
-    -- define the new tree
-    let tree'' = fromMaybe tree tree'
+    -- let tree' = updateLeafs (fromMaybe defaultBranch) (initDef [] currentPath) tree windowNodes
+    -- define the new tree.
+    -- If the focused window has changed, we want to clean the tree.
+    let tree'' =
+          fromMaybe tree $
+            if focused /= lastFocused
+              then clean <$> tree'
+              else shallowClean <$> tree'
     -- if the focused window has changed from the last time, we want to recalculate the currentPath
     -- \| To be able to search for our focused window, we first need to convert our
     -- \| [Tree BranchNode WindowNode] to a [Tree BranchNode Window].
@@ -172,6 +192,24 @@ emptyTreeLayout =
   where
     emptyTree = Branch (BranchNode RIGHT) []
 
+-- | Given a path, find the sum of all percentages of the windows in that tree.
+percentages :: Path -> Tree BranchNode WindowNode -> Maybe Rational
+percentages p t = cut p t >>= Just . sum . fmap percentage
+
+-- | Modify the percentages of all WindowNodes at a given path by a given factor.
+applyPercentages :: Rational -> Path -> Tree BranchNode WindowNode -> Maybe (Tree BranchNode WindowNode)
+applyPercentages factor p t = cut p t >>= Just . fmap (\w -> w {percentage = percentage w * factor})
+
+-- | Given a [TreeLayout], we want to make all the percentages in the tree add up to 1.
+-- | If the percentages do not add up to 1, we will fix that using the following algorithm:
+fixGlobalPercentages :: Tree BranchNode WindowNode -> Tree BranchNode WindowNode
+fixGlobalPercentages t = normalize <$> t
+  where
+    totalPercentage :: Rational
+    totalPercentage = sum $ percentage <$> t
+    normalize :: WindowNode -> WindowNode
+    normalize w = w {percentage = (percentage w) / totalPercentage}
+
 -- | Calculate the positions of all the windows using the given [TreeLayout].
 -- | The algorithm used to calculate the positions is pretty simple:
 -- |
@@ -199,14 +237,22 @@ layoutRects (Branch (BranchNode RIGHT) bs) r@(Rectangle sx sy sw sh) = result
     -- \| 1. Number of subtrees in the branch
     n = length bs
     -- \| 2. The width given for each subtree
-    width :: Rational
-    width = fromIntegral sw / fromIntegral n
-    -- \| 3. An x-offset for each subtree
+    -- \| 2a. First, sum of all the percentages of the subtrees
+    subtreePercentages :: [Rational]
+    subtreePercentages = sum . fmap percentage <$> bs
+    -- \| 2b. Then, find the total percentage of this branch
+    totalPercentage :: Rational
+    totalPercentage = sum subtreePercentages
+    -- \| 2c. Then, calculate the width of each subtree
+    width :: Int -> Rational
+    width i = (fromIntegral sw / totalPercentage) * subtreePercentages !! i
+    -- \| 3. A x-offset for each subtree
+    -- \| This is just the sum of the widths of all the subtrees to the left of the current subtree
     delta :: Int -> Position
-    delta i = fromIntegral i * floor width
+    delta i = round $ sum $ width <$> [0 .. i - 1]
     -- \| 4. Define a helper function that gives us the i-th rectangle
     ithRect :: Rectangle -> Int -> Rectangle
-    ithRect (Rectangle x' y' w' h') i = Rectangle (x' + delta i) y' (fromIntegral $ floor width) h'
+    ithRect (Rectangle x' y' w' h') i = Rectangle (x' + delta i) y' (floor $ width i) h'
     -- \| 5. Apply [layoutRects] to each subtree
     subRects = [layoutRects subtree (ithRect r i) | (i, subtree) <- zip [0 ..] bs]
     -- \| 7. Lastly, we only need to flatten the list of lists of lists ... of rectangles
@@ -221,12 +267,16 @@ layoutRects (Branch (BranchNode UP) bs) r@(Rectangle sx sy sw sh) = result
     -- \| but now we need to split the [Rectangle] vertically instead of
     -- \| horizontally.
     n = length bs
-    height :: Rational
-    height = fromIntegral sh / fromIntegral n
+    subtreePercentages :: [Rational]
+    subtreePercentages = sum . fmap percentage <$> bs
+    totalPercentage :: Rational
+    totalPercentage = sum subtreePercentages
+    height :: Int -> Rational
+    height i = (fromIntegral sh / totalPercentage) * subtreePercentages !! i
     delta :: Int -> Position
-    delta i = fromIntegral i * floor height
+    delta i = round $ sum $ height <$> [0 .. i - 1]
     ithRect :: Rectangle -> Int -> Rectangle
-    ithRect (Rectangle x' y' w' h') i = Rectangle x' (y' + delta i) w' (fromIntegral $ floor height)
+    ithRect (Rectangle x' y' w' h') i = Rectangle x' (y' + delta i) w' (floor $ height i)
     subRects = [layoutRects subtree (ithRect r i) | (i, subtree) <- zip [0 ..] bs]
     result :: [(Window, Rectangle)]
     result = concat subRects
