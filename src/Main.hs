@@ -54,6 +54,8 @@ myStartupHook = do
       spawnOnce "nitrogen --restore &"
       spawnOnce "export SSH_AUTH_SOCK"
       spawnOnce "batsignal -b -n BAT0"
+      spawnOnce "fm.cancel.Ripcord"
+      spawnOnOnce "3" "thunderbird"
       spawnOnce "pactl load-module module-bluetooth-policy auto_switch=2"
       spawnOnce "pactl load-module module-bluetooth-discover"
       spawnOnce "pactl load-module module-bluetooth-policy"

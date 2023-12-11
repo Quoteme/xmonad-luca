@@ -378,19 +378,24 @@ myAdditionalKeys config =
 -- Needed for adding workspaces with automatic names
 addLastWorkspace :: X ()
 addLastWorkspace = do
-  -- maybe use xdotool instead of extensible state?
-  -- workspaceLen <- liftIO $ (\t -> read t :: Int) <$> readProcess "xdotool" ["get_num_desktops"] []
-  workspaceLenString <- runProcessWithInput "xdotool" (["get_num_desktops"]) ""
-  let workspaceLen = read workspaceLenString :: Int
-  -- spawn $ format "notify-send \"Workspace length increased\" \"now at {0}\"" [show workspaceLen]
-  addWorkspace $ show $ workspaceLen + 1
-  return ()
+  -- ask the X monad, which workspaces currently exist
+  workspaceTags <- gets (map S.tag . S.workspaces . windowset)
+  -- find the first natural number not in the list
+  let newName = find (`notElem` workspaceTags) $ show <$> [1 ..]
+  -- if we encountered some error, just use the length of the list
+  let newName' = fromMaybe (show $ length workspaceTags + 1) newName
+  addWorkspace newName'
 
 removeLastWorkspace :: X ()
 removeLastWorkspace = do
-  workspaceLenString <- runProcessWithInput "xdotool" (["get_num_desktops"]) ""
-  let workspaceLen = read workspaceLenString :: Int
-  removeWorkspaceByTag $ show $ workspaceLen
+  -- ask the X monad, which workspaces currently exist
+  workspaceTags <- gets (map S.tag . S.workspaces . windowset)
+  removeWorkspace
+
+-- unless (null workspaceTags) $
+--   removeWorkspaceByTag $
+--     show $
+--       last workspaceTags
 
 -- -- remove old thumbnails
 -- home <- liftIO getHomeDirectory
