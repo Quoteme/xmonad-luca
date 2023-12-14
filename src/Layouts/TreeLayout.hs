@@ -63,30 +63,9 @@ instance LayoutClass TreeLayout Window where
     let windows = XMonad.StackSet.integrate stack
     -- wrap each window in a [WindowNode]
     let windowNodes = map (WindowNode 1) windows
-    let tree' = do
-          -- -- remove all windows that are not in the stack
-          -- oldWindowsRemoved <- removeLeafs (`notElem` windowNodes) tree
-          -- let newWindows = [w | w <- windowNodes, w `notElem` tree]
-          -- -- make room for the new windows
-          -- current <- percentages currentPath oldWindowsRemoved
-          -- let want = current / fromIntegral (length newWindows)
-          -- -- calculate the factor by which we need to multiply the percentages
-          -- -- of each window in the current path to make them add up to 1-want
-          -- let factor = (current - want) / current
-          -- freedTree <- applyPercentages factor currentPath oldWindowsRemoved
-          -- let newWindows' = map (\w -> w {percentage = want}) newWindows
-          -- -- now we only need to add the new windows to the tree
-          -- addAsLeafs (const defaultBranch) currentPath freedTree newWindows'
-          updateLeafs (fromMaybe defaultBranch) (initDef [] currentPath) tree windowNodes
-    -- add all new windows to the tree
-    -- let tree' = updateLeafs (fromMaybe defaultBranch) (initDef [] currentPath) tree windowNodes
-    -- define the new tree.
-    -- If the focused window has changed, we want to clean the tree.
-    let tree'' =
-          fromMaybe tree $
-            if focused /= lastFocused
-              then clean <$> tree'
-              else shallowClean <$> tree'
+    let tree' = updateLeafs (fromMaybe defaultBranch) (initDef [] currentPath) tree windowNodes
+    -- define the new tree
+    let tree'' = fromMaybe tree $ if focused /= lastFocused then (clean <$> tree') else (shallowClean <$> tree')
     -- if the focused window has changed from the last time, we want to recalculate the currentPath
     -- \| To be able to search for our focused window, we first need to convert our
     -- \| [Tree BranchNode WindowNode] to a [Tree BranchNode Window].
