@@ -65,7 +65,7 @@ instance LayoutClass TreeLayout Window where
     let windowNodes = map (WindowNode 1) windows
     let tree' = updateLeafs (fromMaybe defaultBranch) (initDef [] currentPath) tree windowNodes
     -- define the new tree
-    let tree'' = fromMaybe tree $ if focused /= lastFocused then (clean <$> tree') else (shallowClean <$> tree')
+    let tree'' = fromMaybe tree $ if focused /= lastFocused && length tree > 2 then (clean <$> tree') else (shallowClean <$> tree')
     -- if the focused window has changed from the last time, we want to recalculate the currentPath
     -- \| To be able to search for our focused window, we first need to convert our
     -- \| [Tree BranchNode WindowNode] to a [Tree BranchNode Window].
@@ -127,7 +127,7 @@ instance LayoutClass TreeLayout Window where
         return $ Just $ TreeLayout (fromMaybe tree tree') defaultBranch currentPath lastFocused
     | Just Swap <- fromMessage someMessage = do
         -- \| 1. Swap the branch at the given path
-        xmessage $ format "path: {0},\ntree: {1}" [(show currentPath), (show tree)]
+        xmessage $ format "path: {0},\ntree: {1},\n\n lastBranch: {2}" [(show currentPath), (show tree), show (branchSubpath currentPath tree)]
         -- let tree' = apply currentPath swap tree
         -- \| 2. Return the new layout
         return $ Just $ TreeLayout tree defaultBranch currentPath lastFocused
@@ -239,7 +239,7 @@ layoutRects (Branch (BranchNode RIGHT) bs) r@(Rectangle sx sy sw sh) = result
     result :: [(Window, Rectangle)]
     result = concat subRects
 -- FIXME: This currently causes XMonad to crash
-layoutRects b@(Branch (BranchNode LEFT) _) r = layoutRects (Branch (BranchNode RIGHT) (trunk $ involution b)) r
+layoutRects b@(Branch (BranchNode LEFT) _) r = layoutRects (Branch (BranchNode RIGHT) (branches $ involution b)) r
 layoutRects (Branch (BranchNode UP) bs) r@(Rectangle sx sy sw sh) = result
   where
     -- \| Just like in the [RIGHT] case, we need to do the same thing here,
@@ -259,7 +259,7 @@ layoutRects (Branch (BranchNode UP) bs) r@(Rectangle sx sy sw sh) = result
     subRects = [layoutRects subtree (ithRect r i) | (i, subtree) <- zip [0 ..] bs]
     result :: [(Window, Rectangle)]
     result = concat subRects
-layoutRects b@(Branch (BranchNode DOWN) _) r = layoutRects (Branch (BranchNode UP) (trunk $ involution b)) r
+layoutRects b@(Branch (BranchNode DOWN) _) r = layoutRects (Branch (BranchNode UP) (branches $ involution b)) r
 
 -- | Simple function to create a pixel from RGB values
 -- |

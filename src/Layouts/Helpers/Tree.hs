@@ -9,7 +9,7 @@ import Data.Maybe
 import Layouts.Helpers.Involution
 import Named
 
-data Tree a b = Branch {branchData :: a, trunk :: [Tree a b]} | Leaf b
+data Tree a b = Branch {trunk :: a, branches :: [Tree a b]} | Leaf b
   deriving (Read, Eq)
 
 $(makePrisms ''Tree)
@@ -218,3 +218,17 @@ numSubtrees p t = do
   return $ case t' of
     Leaf _ -> 0
     Branch _ bs -> length bs
+
+-- | Given a path and a tree, find the longest initial subpath, such that
+-- the subtree spanned by that path is a branch
+--
+-- Example:
+--
+-- branchSubpath [0, 0, 0] (Branch "a" [Branch "b" [Leaf 1, Leaf 2], Branch "c" [Leaf 3, Leaf 4]]) = [0]
+branchSubpath :: Path -> Tree a b -> Path
+branchSubpath p (Leaf _) = []
+branchSubpath (i : is) (Branch _ bs) =
+  if (i < length bs) && isBranch (bs !! i) then i : branchSubpath is (bs !! i) else []
+  where
+    isBranch (Branch _ _) = True
+    isBranch _ = False
