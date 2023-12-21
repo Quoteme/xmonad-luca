@@ -181,28 +181,7 @@ instance Involutive (Tree a b) where
   involution (Leaf b) = Leaf b
   involution (Branch a bs) = Branch a (reverse $ map involution bs)
 
--- | shallowClean a tree by removing all branches that have no leafs
--- |
--- | Example
--- |
--- | shallowClean ( Branch "a" [Branch "b" [Leaf 1, Leaf 2], Branch "c" [Branch "d" [], Branch "e" []]] )
--- | =
--- | Branch "a" [Branch "b" [Leaf 1, Leaf 2]]
--- |
--- | Example
--- |
--- | shallowClean ( Branch "a" [Branch "b" [Leaf 2, Leaf 3]] )
--- | =
--- | Branch "b" [Leaf 2, Leaf 3]
-shallowClean :: Tree a b -> Tree a b
-shallowClean (Leaf b) = Leaf b
-shallowClean (Branch a [Branch a' x]) = shallowClean $ Branch a' x
-shallowClean (Branch a bs) = Branch a (filter (not . emptyBranch) $ map shallowClean bs)
-  where
-    emptyBranch (Leaf _) = False
-    emptyBranch (Branch _ bs) = all emptyBranch bs
-
--- | Like [shallowClean] but also remove all branches that have only one leaf
+-- | Clean a tree by removing all branches that have no leafs
 clean :: Tree a b -> Tree a b
 clean (Leaf b) = Leaf b
 clean (Branch a [x]) = clean x
@@ -210,6 +189,17 @@ clean (Branch a bs) = Branch a (filter (not . emptyBranch) $ map clean bs)
   where
     emptyBranch (Leaf _) = False
     emptyBranch (Branch _ bs) = all emptyBranch bs
+
+-- | Like [clean], but replace maximal empty branches with a single empty branch
+shallowClean :: Tree a b -> Tree a b
+shallowClean (Leaf b) = Leaf b
+shallowClean (Branch a bs) 
+  | all emptyBranch cleanedBranches = Branch a []
+  | otherwise = Branch a (filter (not . emptyBranch) cleanedBranches)
+  where
+    emptyBranch (Leaf _) = False
+    emptyBranch (Branch _ bs) = all emptyBranch bs
+    cleanedBranches = map shallowClean bs
 
 -- | Get the number ot subtrees in a branch at a given path
 numSubtrees :: Path -> Tree a b -> Maybe Int
