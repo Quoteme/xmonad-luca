@@ -1,3 +1,5 @@
+{-# LANGUAGE MonadComprehensions #-}
+
 module Layouts.TreeLayout
   ( TreeLayout (..),
     emptyTreeLayout,
@@ -17,8 +19,9 @@ import Layouts.Helpers.Tree
 import Safe
 import Text.Format
 import XMonad
-import XMonad.Layout.BinarySpacePartition (Rotate (Rotate), SelectMoveNode (..), Swap (..))
+import XMonad.Layout.BinarySpacePartition (Rotate (Rotate), SelectMoveNode (..), Swap (..), TreeBalance (Balance))
 import XMonad.StackSet
+import Data.Function
 
 -- | Container to store all the extra-data for a node in our [TreeLayout].
 data WindowNode = WindowNode
@@ -126,10 +129,15 @@ instance LayoutClass TreeLayout Window where
         -- \| 2. Return the new layout
         return $ Just $ TreeLayout (fromMaybe tree tree') defaultBranch currentPath lastFocused
     | Just Swap <- fromMessage someMessage = do
-        -- \| 1. Swap the branch at the given path
+        -- \| 1. Instead of swapping like in the [BinarySpacePartition] layout,
+        -- \| we use the generalization of swapping, which is rotating.
+        -- \| (Technically, we need one swapping operation and one rotation operation
+        -- \| to generate the permutation group $S_n$, for $n>2$ windows)
+        let newTree = Layouts.Helpers.Tree.rotate (initDef [] currentPath) tree & fromMaybe tree
+        return $ Just $ TreeLayout newTree defaultBranch currentPath lastFocused
+    | Just Balance <- fromMessage someMessage = do
+        -- show a debug message
         xmessage $ format "path: {0},\ntree: {1},\n\n lastBranch: {2}" [(show currentPath), (show tree), show (branchSubpath currentPath tree)]
-        -- let tree' = apply currentPath swap tree
-        -- \| 2. Return the new layout
         return $ Just $ TreeLayout tree defaultBranch currentPath lastFocused
     | Just SelectNode <- fromMessage someMessage = do
         -- \| 1. Swap the branch at the given path
