@@ -37,6 +37,7 @@ import XMonad.Operations (windows)
 import XMonad.StackSet qualified as S
 import XMonad.Util.ExtensibleState qualified as XS
 import XMonad.Util.Image
+import LayoutModifiers.InterpolationModifier (animate)
 
 -- Navigation2DConfig
 myNavigation2DConfig =
@@ -52,6 +53,7 @@ myNavigation2DConfig =
 -- My Layouts
 myLayout =
   avoidStruts myTabletMode
+    ||| (animate . avoidStruts) myTabletMode
     ||| (smartBorders . hiddenWindows . maximize . minimize . BW.boringWindows . avoidStruts) emptyTreeLayout
     ||| myFullscreen
   where

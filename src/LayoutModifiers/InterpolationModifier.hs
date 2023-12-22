@@ -8,6 +8,7 @@ import Control.Monad.Primitive (unsafePrimToIO)
 import XMonad.Layout.Decoration
 import Control.Monad
 import XMonad.StackSet (currentTag)
+import Text.Format
 
 data InterpolationModifier a = InterpolationModifier
   { -- | The interpolation function
@@ -41,24 +42,36 @@ instance LayoutModifier InterpolationModifier Window where
     -- calculate the time between two frames
     let frameTime = dt / fromIntegral frames
     -- calculate in how many milliseconds we need to draw which frame
-    let percentages = [fi i / fi frames | i <- [0..frames]]
+    let percentages :: [Rational] = [fi i / fi frames | i <- [0..frames]]
     -- position the windows into their new rectangles (using X11 functions).
     -- Then wait i*frameTime milliseconds and repeat.
+    -- logging (write to /tmp/xmonad.log) is done using `io`
+    io $ appendFile "/tmp/xmonad.log" $ "\n\n---\n"
+    io $ appendFile "/tmp/xmonad.log" $ "InterpolationModifier: " ++ show (length percentages) ++ " " ++ show (length wrs) ++ "\n"
+    -- io $ appendFile "/tmp/xmonad.log" $ "🪟🔁" ++ show ip
     io $ do
+      -- moveAll
       dpy <- openDisplay ""
       forM_ percentages $ \percentage -> do
         -- wait until the next frame
-        threadDelay $ round frameTime
+        threadDelay $ round (frameTime * percentage*500)
         -- for each window for which we saved its initial position and for which we have a new position
         -- interpolate between the two positions and move the window to the new position
         let interpolatings = [(a,r1,r2) | (a,r1) <- ip, Just r2 <- [lookup a wrs]]
         -- transform each `a` into a window id
         forM_ interpolatings $ \(a,r1,r2) -> do
           let r = f percentage r1 r2
+          appendFile "/tmp/xmonad.log" $ format "🔁 {0}" [show a]
           -- first move the window to the upper left corner using `moveWindow`
-          moveWindow dpy a (rect_x r) (rect_y r)
+          -- moveWindow dpy a (rect_x r) (rect_y r)
+          moveWindow dpy a 0 0
           -- then resize the window using `resizeWindow`
-          resizeWindow dpy a (rect_width r) (rect_height r)
+          resizeWindow dpy a 10 10
+          -- force the windows to be redrawn by sending an expose event
+          allocaXEvent $ \ev -> do
+            setEventType ev expose
+            sendEvent dpy a False exposureMask ev
+          flush dpy
       closeDisplay dpy
     return (wrs, Just $ InterpolationModifier f wrs dt fps)
 
@@ -77,3 +90,28 @@ defaultInterpolationModifier = InterpolationModifier {
 
 animate :: l a -> ModifiedLayout InterpolationModifier l a
 animate = ModifiedLayout defaultInterpolationModifier
+
+moveAll :: IO ()
+moveAll = do
+  -- Open a connection to the X server.
+  display <- openDisplay ""
+
+  -- Get the root window.
+  let root = defaultRootWindow display
+
+  -- Get the list of all windows.
+  (_, _, windows) <- queryTree display root
+
+  -- For each window, move it to (0,0) and resize it to 10x10.
+  forM_ windows $ \window -> do
+    -- Move the window to the upper-left corner.
+    moveWindow display window 0 0
+    
+    -- Resize the window to 10x10.
+    resizeWindow display window 10 10
+
+    -- Make the changes take effect immediately.
+    sync display False
+
+  -- Close the connection to the X server.
+  closeDisplay display
