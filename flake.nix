@@ -53,7 +53,7 @@
           # xfce.xfce4-namebar-plugin
           (haskellPackages.ghcWithPackages myHaskellPackages)
           brightnessctl
-          gnome.zenity
+          zenity
           inputs.screenrotate.defaultPackage.x86_64-linux
           jgmenu
           libinput
@@ -118,30 +118,31 @@
           buildInputs = dependencies;
 
           buildPhase = ''
-            						mkdir build
-            						ln -sf $src/* build
-            						ghc -o xmonad-luca \
-            							Main.hs \
-            							Utilities.hs \
-            							Constants.hs \
-            							Layouts/TreeLayout.hs \
-            							Layouts/Helpers/Tree.hs \
-            							Layouts/Helpers/Involution.hs \
-            							LayoutModifiers/InterpolationModifier.hs \
-            							-threaded -rtsopts -with-rtsopts=-N
-            					'';
+            mkdir build
+            ln -sf $src/* build
+            ghc -o xmonad-luca \
+              Main.hs \
+              Utilities.hs \
+              Constants.hs \
+              Layouts/TreeLayout.hs \
+              Layouts/Helpers/Tree.hs \
+              Layouts/Helpers/Involution.hs \
+              LayoutModifiers/InterpolationModifier.hs \
+              -threaded -rtsopts -with-rtsopts=-N
+          '';
 
           installPhase = ''
-            							mkdir -p $out/bin
-            							cp xmonad-luca $out/bin/xmonad-luca
-            							chmod +x $out/bin/xmonad-luca
-            						'';
+            mkdir -p $out/bin
+            cp xmonad-luca $out/bin/xmonad-luca
+            chmod +x $out/bin/xmonad-luca
+            echo "You may wish to copy the result/bin/xmonad-luca to ~/.cache/xmonad/xmonad-x86_64-linux"
+          '';
+
           preFixup = ''
-            						makeWrapper $out/bin/xmonad-luca \
-            							--prefix PATH : ${builtins.lib.makeBinPath dependencies}
-            					'';
+            wrapProgram "$out/bin/xmonad-luca" \
+              --prefix PATH : ${pkgs.lib.makeBinPath dependencies}
+          '';
         };
       }
     );
 }
-# vim: tabstop=2 shiftwidth=2 noexpandtab
