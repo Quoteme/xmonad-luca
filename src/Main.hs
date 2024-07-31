@@ -2,29 +2,69 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns #-}
 
 import Control.Monad (forever, when)
 import Data.List (isInfixOf)
 import GHC.IO.Handle (hFlush, hGetLine)
-import Hooks
-import Keybindings
+import Hooks (
+  myAfterRescreenHook,
+  myClientMask,
+  myEventHook,
+  myLogHook,
+  myManageHook,
+  myRandrChangeHook,
+ )
+import Keybindings (myAdditionalKeys, myKeys)
 import LaptopMode (tabletModeHook)
-import Layouts
-import Mousebindings
-import Options
+import Layouts (myLayout, myNavigation2DConfig)
+import Mousebindings (myMouseBindings)
+import Options (
+  myBorderWidth,
+  myClickJustFocuses,
+  myFocusFollowsMouse,
+  myFocusedBorderColor,
+  myModMask,
+  myNormalBorderColor,
+  myWorkspaces,
+ )
 import System.Environment (lookupEnv, setEnv)
-import Thumbnail
-import XMonad
-import XMonad.Actions.Navigation2D
+import Thumbnail ()
+import XMonad (
+  Default (def),
+  MonadIO (liftIO),
+  XConfig (
+    borderWidth,
+    clickJustFocuses,
+    clientMask,
+    focusFollowsMouse,
+    focusedBorderColor,
+    handleEventHook,
+    layoutHook,
+    logHook,
+    manageHook,
+    modMask,
+    mouseBindings,
+    normalBorderColor,
+    startupHook,
+    terminal,
+    workspaces
+  ),
+  getDirectories,
+  launch,
+  xK_F1,
+ )
+import XMonad.Actions.Navigation2D (withNavigation2DConfig)
 import XMonad.Actions.UpdateFocus (adjustEventInput, focusOnMouseMove)
-import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.ManageDocks
-import XMonad.Hooks.Rescreen
+import XMonad.Hooks.EwmhDesktops (ewmh)
+import XMonad.Hooks.ManageDocks (docks)
+import XMonad.Hooks.Rescreen (
+  RescreenConfig (afterRescreenHook, randrChangeHook),
+  rescreenHook,
+ )
 import XMonad.Hooks.SetWMName (setWMName)
 import XMonad.Util.NamedActions (addDescrKeys, addName, subtitle, xMessage, (^++^))
 import XMonad.Util.Run (spawnPipe)
-import XMonad.Util.SpawnOnce
+import XMonad.Util.SpawnOnce (spawnOnOnce, spawnOnce)
 
 -- Startup hook
 myStartupHook = do
@@ -33,6 +73,7 @@ myStartupHook = do
   -- enable tap-to-click
   spawnOnce "xinput set-prop 'ELAN1201:00 04F3:3098 Touchpad' 'libinput Tapping Enabled' 1"
   liftIO $ setEnv "QT_QPA_PLATFORMTHEME" "qt5ct"
+  liftIO $ setEnv "QT_STYLE_OVERRIDE" "kvantum"
   -- tabletModeHook
   -- only call the function, when the environment variable "XMONAD_TEST_MODE" is set
   test_mode <- liftIO $ lookupEnv "XMONAD_TEST_MODE"
