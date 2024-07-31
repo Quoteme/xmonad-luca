@@ -50,50 +50,54 @@
           xmonad-extras
         ]);
         dependencies = with pkgs; [
-          xdotool
-          xorg.xinput
-          xorg.xmessage
-          libnotify
+          # xfce.xfce4-namebar-plugin
+          (haskellPackages.ghcWithPackages myHaskellPackages)
+          brightnessctl
+          gnome.zenity
+          inputs.screenrotate.defaultPackage.x86_64-linux
+          jgmenu
           libinput
-          xfce.xfce4-panel
-          xfce.xfce4-notifyd
-          xfce.xfce4-panel-profiles
-          xfce.xfce4-cpugraph-plugin
-          xfce.xfce4-sensors-plugin
-          xfce.xfce4-cpufreq-plugin
-          xfce.xfce4-pulseaudio-plugin
+          libnotify
+          lightlocker
+          nitrogen
+          onboard
+          pamixer
+          picom
+          pulseaudio
+          qt5ct
+          xclip
+          xdotool
+          xdotool
           xfce.xfce4-battery-plugin
           xfce.xfce4-clipman-plugin
+          xfce.xfce4-clipman-plugin
+          xfce.xfce4-cpufreq-plugin
+          xfce.xfce4-cpugraph-plugin
           xfce.xfce4-datetime-plugin
           xfce.xfce4-dockbarx-plugin
           xfce.xfce4-fsguard-plugin
           xfce.xfce4-genmon-plugin
           xfce.xfce4-mailwatch-plugin
+          xfce.xfce4-notifyd
+          xfce.xfce4-panel
+          xfce.xfce4-panel-profiles
+          xfce.xfce4-power-manager
+          xfce.xfce4-pulseaudio-plugin
+          xfce.xfce4-sensors-plugin
           xfce.xfce4-whiskermenu-plugin
           xfce.xfce4-windowck-plugin
-          xfce.xfce4-power-manager
-          # xfce.xfce4-namebar-plugin
-          xfce.xfce4-clipman-plugin
+          xmonadctl
+          xorg.xinput
+          xorg.xmessage
+
           (writeShellScriptBin "launch-notification-manager" ''
             						${pkgs.xfce.xfce4-notifyd}/lib/xfce4/notifyd/xfce4-notifyd
             					'')
-          brightnessctl
-          inputs.screenrotate.defaultPackage.x86_64-linux
-          pamixer
-          pulseaudio
-          xmonadctl
-          (haskellPackages.ghcWithPackages myHaskellPackages)
         ];
       in
       rec {
-        defaultApp = apps.xmonad-luca;
         defaultPackage = packages.xmonad-luca;
 
-        apps.xmonad-luca = {
-          type = "app";
-          program = "${defaultPackage}/bin/xmonad-luca";
-        };
-        # create a defualt devshell
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             haskell-language-server
