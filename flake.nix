@@ -2,7 +2,7 @@
   description = "Luca's xmonad configuration 🚀";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/57610d2f8f0937f39dbd72251e9614b1561942d8";
     screenrotate = {
       url = "github:Quoteme/screenrotate";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -53,7 +53,7 @@
           # xfce.xfce4-namebar-plugin
           (haskellPackages.ghcWithPackages myHaskellPackages)
           brightnessctl
-          zenity
+          gnome.zenity
           inputs.screenrotate.defaultPackage.x86_64-linux
           jgmenu
           libinput
@@ -65,6 +65,7 @@
           picom
           pulseaudio
           qt5ct
+          kvantum
           xclip
           xdotool
           xdotool
@@ -102,6 +103,13 @@
           buildInputs = with pkgs; [
             haskell-language-server
             (haskellPackages.ghcWithPackages myHaskellPackages)
+            (pkgs.writeShellScriptBin "install-xmonad-home" /*bash*/ ''
+              #!/usr/bin/env bash
+              echo "This script will build and install xmonad-luca to ~/.cache/xmonad/xmonad-x86_64-linux"
+              nix build
+              cp -r result/bin ~/.cache/xmonad/xmonad-x86_64-linux
+              chmod +rw ~/.cache/xmonad/xmonad-x86_64-linux 
+            '')
           ];
         };
 
@@ -134,7 +142,6 @@
           installPhase = ''
             mkdir -p $out/bin
             cp xmonad-luca $out/bin/xmonad-luca
-            chmod +x $out/bin/xmonad-luca
             echo "You may wish to copy the result/bin/xmonad-luca to ~/.cache/xmonad/xmonad-x86_64-linux"
           '';
 
