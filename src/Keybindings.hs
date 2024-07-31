@@ -123,6 +123,7 @@ myKeys config =
       , ("M-C-S-<Tab>", addName "WindowStack: swap previous" $ windows S.swapUp >> myUpdateFocus)
       , -- 🔎 Easymotion
         ("M-g", addName "Easymotion: focus" $ selectWindow def >>= (`whenJust` windows . S.focusWindow) >> myUpdateFocus)
+      , ("M-y", addName "Easymotion: focus" $ selectWindow def >>= (`whenJust` windows . S.focusWindow) >> myUpdateFocus)
       , ("M-C-g", addName "Easymotion: kill" $ selectWindow def >>= (`whenJust` killWindow))
       , -- 🏃 Directional Focus Movement
         ("M-h", addName "Focus: left" $ windowGo L False >> myUpdateFocus)

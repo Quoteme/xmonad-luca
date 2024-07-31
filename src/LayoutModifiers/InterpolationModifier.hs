@@ -9,109 +9,83 @@ import XMonad.Layout.Decoration
 import Control.Monad
 import XMonad.StackSet (currentTag)
 import Text.Format
+import XMonad.Util.PositionStore (getPosStore, posStoreQuery, posStoreInsert, modifyPosStore, posStoreRemove, posStoreMove)
 
+-- | A layout modifier that adds an animation effect to moving and resizing windows
+-- of windows.
+--
+-- We add this animation effect, by storing all positions which we receive 
+-- from the `runLayout` function of the underlying layout, if we do not have any
+-- position stored for a window.
+--
+-- If we do however have the positions of a window stored and we get a new position
+-- from the underlying layout, we interpolate between the two positions.
+-- We this this so long, until we reach the position we got from the underlying layout.
 data InterpolationModifier a = InterpolationModifier
   { -- | The interpolation function
-    --   The first argument is the passed time as a rational number between 0 and 1
-    --   The second argument is the rectangle at the start
-    --   The third argument is the rectangle at the end
-    --   The result is the rectangle at the current time
-    interpolationFunction :: Rational -> Rectangle -> Rectangle -> Rectangle
-    -- | The initial positions of the windows
-    , initialPositions :: [(a, Rectangle)]
-    -- | The time it takes to interpolate from the start to the end in milliseconds
-    , interpolationTime :: Rational
-    -- | Number of frames to draw
-    , fps :: Int
+    --   The first argument is the rectangle where it currently is
+    --   The second argument is the rectangle where it should be
+    --   The result is the rectangle after one interpolation step
+    interpolationFunction :: Rectangle -> Rectangle -> Rectangle
+    -- amount of time an interpolation step takes in milliseconds
+    , interpolationTime :: Int
   }
 
 instance Show a => Show (InterpolationModifier a) where
-  show (InterpolationModifier _ _ dt fps) = "InterpolationModifier " ++ show dt ++ " " ++ show fps
+  show (InterpolationModifier f dt) = "InterpolationModifier " ++ show dt
 
 instance Read a => Read (InterpolationModifier a) where
-  readsPrec _ s = [(InterpolationModifier defaultInterpolationFunction [] 3000 10, "")]
+  readsPrec _ s = [(InterpolationModifier (defaultInterpolationFunction 1 1 1 1) 3000, "")]
 
 instance LayoutModifier InterpolationModifier Window where
   modifierDescription _ = "Interpolated"
 
-  redoLayout (InterpolationModifier f ip dt fps) rect possibleStack wrs = do
-    -- get the current time
-    time <- io getPOSIXTime
-    -- calculate the number of frame we need to draw
-    let frames = ceiling $ dt * fi fps / 1000
-    -- calculate the time between two frames
-    let frameTime = dt / fromIntegral frames
-    -- calculate in how many milliseconds we need to draw which frame
-    let percentages :: [Rational] = [fi i / fi frames | i <- [0..frames]]
-    -- position the windows into their new rectangles (using X11 functions).
-    -- Then wait i*frameTime milliseconds and repeat.
-    -- logging (write to /tmp/xmonad.log) is done using `io`
-    io $ appendFile "/tmp/xmonad.log" $ "\n\n---\n"
-    io $ appendFile "/tmp/xmonad.log" $ "InterpolationModifier: " ++ show (length percentages) ++ " " ++ show (length wrs) ++ "\n"
-    -- io $ appendFile "/tmp/xmonad.log" $ "🪟🔁" ++ show ip
-    io $ do
-      -- moveAll
-      dpy <- openDisplay ""
-      forM_ percentages $ \percentage -> do
-        -- wait until the next frame
-        threadDelay $ round (frameTime * percentage*500)
-        -- for each window for which we saved its initial position and for which we have a new position
-        -- interpolate between the two positions and move the window to the new position
-        let interpolatings = [(a,r1,r2) | (a,r1) <- ip, Just r2 <- [lookup a wrs]]
-        -- transform each `a` into a window id
-        forM_ interpolatings $ \(a,r1,r2) -> do
-          let r = f percentage r1 r2
-          appendFile "/tmp/xmonad.log" $ format "🔁 {0}" [show a]
-          -- first move the window to the upper left corner using `moveWindow`
-          -- moveWindow dpy a (rect_x r) (rect_y r)
-          moveWindow dpy a 0 0
-          -- then resize the window using `resizeWindow`
-          resizeWindow dpy a 10 10
-          -- force the windows to be redrawn by sending an expose event
-          allocaXEvent $ \ev -> do
-            setEventType ev expose
-            sendEvent dpy a False exposureMask ev
-          flush dpy
-      closeDisplay dpy
-    return (wrs, Just $ InterpolationModifier f wrs dt fps)
+  redoLayout (InterpolationModifier f dt) rect possibleStack wrs = do
+    posStore <- getPosStore
+    -- get all stored positions for any windows in `wrs`
+    let storedPositions' = [(a', pos) | (a', pos) <- [(a, posStoreQuery posStore a rect) | a <- map fst wrs], isJust pos]
+    io $ appendFile "/tmp/interpolation.log" $ format "1: {0}\n" [ show storedPositions' ]
+    -- add all positions for windows in `wrs` which we do not have stored
+    forM_ [(a, pos) | (a, pos) <- wrs, not $ any (\(a', _) -> a == a') storedPositions'] $ \(a,pos) -> do
+      modifyPosStore (\ps -> posStoreInsert ps a pos rect)
+    -- remove all positions for windows which are not in `wrs` from the store
+    io $ appendFile "/tmp/interpolation.log" $ "2\n"
+    forM_ [a | (a, _) <- storedPositions', not $ any (\(a', _) -> a == a') wrs] $ \a -> do
+      modifyPosStore (`posStoreRemove` a)
+    -- now that the store is synced, modify it by interpolating between the stored positions and the new positions
+    io $ appendFile "/tmp/interpolation.log" $ "3\n"
+    forM_ wrs $ \(a, wantedRect) -> do
+      let currentRect = fromJust $ posStoreQuery posStore a rect
+      modifyPosStore (\ps -> posStoreInsert ps a (f currentRect wantedRect) rect)
+    io $ appendFile "/tmp/interpolation.log" $ "4\n"
+    -- now, fetch all positions and windows from the posStore into `storedPositions`
+    let storedPositions = [(a, fromJust $ posStoreQuery posStore a rect) | a <- map fst wrs]
+    io $ appendFile "/tmp/interpolation.log" $ format "InterpolationModifier: {0}\n" [ show storedPositions ]
+    return (storedPositions, Just $ InterpolationModifier f dt)
 
-defaultInterpolationFunction :: Rational -> Rectangle -> Rectangle -> Rectangle
-defaultInterpolationFunction percentage (Rectangle x1 y1 w1 h1) (Rectangle x2 y2 w2 h2) =
-      Rectangle (x1 + fi (round $ percentage * fi (x2 - x1))) (y1 + fi (round $ percentage * fi (y2 - y1))) (w1 + fi (round $ percentage * fi (w2 - w1))) (h1 + fi (round $ percentage * fi (h2 - h1)))
+-- | Transform one rectangle into another
+--
+-- The first argument is how many pixels we should move towards the second rectangle in one step
+-- The second argument is how many pixels we should resize towards the second rectangle in one step
+-- The third argument is a threshold for distance. If we are this close to the second rectangle, we will just jump to it  
+-- The fourth argument is a threshold for size. If we are this close to the second rectangle, we will just jump to it
+-- the fifth argument is the rectangle we want to transform
+-- The sixth argument is the rectangle we want to transform to
+defaultInterpolationFunction :: Int -> Int -> Int -> Int -> Rectangle -> Rectangle -> Rectangle
+defaultInterpolationFunction dt ds thrT thrS (Rectangle x y w h) (Rectangle x' y' w' h') =
+  Rectangle (x + dx') (y + dy') (w + dw') (h + dh')
+  where
+    dx' = if abs (x - x') < fromIntegral thrT then x' - x else fromIntegral dt
+    dy' = if abs (y - y') < fromIntegral thrT then y' - y else fromIntegral dt
+    dw' = if abs (w - w') < fromIntegral thrS then w' - w else fromIntegral dt
+    dh' = if abs (h - h') < fromIntegral thrS then h' - h else fromIntegral dt
 
 
 defaultInterpolationModifier :: InterpolationModifier a
 defaultInterpolationModifier = InterpolationModifier {
-  interpolationFunction = defaultInterpolationFunction
+  interpolationFunction = defaultInterpolationFunction 1 1 1 1
   , interpolationTime = 3000
-  , initialPositions = []
-  , fps = 10
-  } 
+  }
 
 animate :: l a -> ModifiedLayout InterpolationModifier l a
 animate = ModifiedLayout defaultInterpolationModifier
-
-moveAll :: IO ()
-moveAll = do
-  -- Open a connection to the X server.
-  display <- openDisplay ""
-
-  -- Get the root window.
-  let root = defaultRootWindow display
-
-  -- Get the list of all windows.
-  (_, _, windows) <- queryTree display root
-
-  -- For each window, move it to (0,0) and resize it to 10x10.
-  forM_ windows $ \window -> do
-    -- Move the window to the upper-left corner.
-    moveWindow display window 0 0
-    
-    -- Resize the window to 10x10.
-    resizeWindow display window 10 10
-
-    -- Make the changes take effect immediately.
-    sync display False
-
-  -- Close the connection to the X server.
-  closeDisplay display
