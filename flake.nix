@@ -7,8 +7,6 @@
       url = "github:Quoteme/screenrotate";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    xmonad-workspace-preview.url = "github:Quoteme/xmonad-workspace-preview";
-    control_center.url = "github:Quoteme/control_center";
     flake-utils = {
       inputs.nixpkgs.follows = "nixpkgs";
       url = "github:numtide/flake-utils";
@@ -18,11 +16,6 @@
       url = "github:xmonad/xmonad-contrib";
       # inputs.nixpkgs.follows = "nixpkgs";
     };
-    whisper-input = {
-      url = "github:quoteme/whisper-input";
-      # inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nix-vscode-extensions.url = "github:nix-community/nix-vscode-extensions";
   };
 
   outputs = { self, nixpkgs, flake-utils, ... }@inputs:
@@ -32,7 +25,6 @@
           inherit system;
           overlays = [
             inputs.xmonad-contrib.overlay
-            inputs.nix-vscode-extensions.overlays.default
           ];
           config.allowBroken = true;
         };
@@ -45,33 +37,20 @@
           })
           { });
         myHaskellPackages = (hpkgs: with hpkgs; [
-          base
           # TODO: add the floating-window-decorations patch from:
           # https://github.com/xmonad/xmonad/issues/355
+          base
+          colour
+          lens
+          named
+          safe
+          text-format-simple
           xmonad
           xmonad-contrib
           xmonad-extras
-          text-format-simple
-          named
-          lens
-          colour
-          safe
-          # containers_0_6_7
-          # streamly
-          # streamly-core
-          # evdev
-          # (pkgs.haskell.lib.overrideCabal evdev {
-          #  version = "2.1.0";
-          #  sha256 = "sha256-Q1IwcL0ABaUXTx2KWk2ZZaVnY0i/YBf1Y7WJqC9M7r8=";
-          #  })
-          # evdev-streamly
-          haskell-dap
-          ghci-dap
-          haskell-debug-adapter
         ]);
         dependencies = with pkgs; [
           xdotool
-          imagemagick
           xorg.xinput
           xorg.xmessage
           libnotify
@@ -98,11 +77,8 @@
           (writeShellScriptBin "launch-notification-manager" ''
             						${pkgs.xfce.xfce4-notifyd}/lib/xfce4/notifyd/xfce4-notifyd
             					'')
-          xorg.xhost
           brightnessctl
           inputs.screenrotate.defaultPackage.x86_64-linux
-          inputs.xmonad-workspace-preview.defaultPackage.x86_64-linux
-          inputs.whisper-input.defaultPackage.x86_64-linux
           pamixer
           pulseaudio
           xmonadctl
@@ -120,93 +96,46 @@
         # create a defualt devshell
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
-            # (vscode-with-extensions.override {
-            #   vscode = vscodium;
-            #   vscodeExtensions = with pkgs.vscode-marketplace; [
-            #     # HASKELL
-            #     haskell.haskell
-            #     justusadam.language-haskell
-            #     visortelle.haskell-spotlight
-            #     ucl.haskelly
-            #     phoityne.phoityne-vscode
-            #     # Copilot
-            #     github.copilot-labs
-            #     github.copilot
-            #     github.remotehub
-            #     github.copilot-chat
-            #     # VIM
-            #     vscodevim.vim
-            #     # NIX
-            #     bbenoist.nix
-            #     jnoortheen.nix-ide
-            #   ];
-            # })
             haskell-language-server
-            (pkgs.python310.withPackages (ps: with ps; [
-              PyVirtualDisplay
-            ]))
             (haskellPackages.ghcWithPackages myHaskellPackages)
           ];
         };
 
-        packages.xmonad-luca-test = pkgs.stdenv.mkDerivation {
-          name = "xmonad luca-test";
-          src = ./test;
-          version = "1.0";
-          buildInputs = [
-            packages.xmonad-luca
-            (pkgs.python310.withPackages (ps: with ps; [
-              PyVirtualDisplay
-            ]))
-            pkgs.xorg.xmessage
-          ] ++ dependencies;
-          dontBuild = true;
-          installPhase = ''
-                        						mkdir -p $out/bin
-                        						cp $src/* $out/bin/
-            												ln -sf ${packages.xmonad-luca}/bin/xmonad-luca $out/bin/xmonad-luca
-                        						chmod +x $out/bin/xmonad-luca-test
-                        					'';
-        };
-        # packages.xmonad-luca-test = pkgs.writeShellApplication {
-        # 	name = "xmonad-luca-test";
-        # 	runtimeInputs = [
-        # 		packages.xmonad-luca
-        # 	];
-        # 	text = ''
-        # 		echo "hallo welt"
-        # 	'';
-        # };
         packages.xmonad-luca = pkgs.stdenv.mkDerivation {
           name = "xmonad-luca";
           pname = "xmonad-luca";
           version = "1.0";
           src = ./src;
 
+          nativeBuildInputs = with pkgs; [
+            makeWrapper
+          ];
+
           buildInputs = dependencies;
+
           buildPhase = ''
-                        						mkdir build
-                        						ln -sf $src/* build
-                        						ghc -o xmonad-luca Main.hs Utilities.hs Constants.hs Layouts/TreeLayout.hs Layouts/Helpers/Tree.hs Layouts/Helpers/Involution.hs -threaded -rtsopts -with-rtsopts=-N
-            												'';
+            						mkdir build
+            						ln -sf $src/* build
+            						ghc -o xmonad-luca \
+            							Main.hs \
+            							Utilities.hs \
+            							Constants.hs \
+            							Layouts/TreeLayout.hs \
+            							Layouts/Helpers/Tree.hs \
+            							Layouts/Helpers/Involution.hs \
+            							LayoutModifiers/InterpolationModifier.hs \
+            							-threaded -rtsopts -with-rtsopts=-N
+            					'';
+
           installPhase = ''
-                        						mkdir -p $out/bin
-                                    cp xmonad-luca $out/bin/xmonad-luca
-                        						chmod +x $out/bin/xmonad-luca
-            												'';
-        };
-
-        packages.xmonad-luca-alldeps = pkgs.symlinkJoin {
-          name = "xmonad-luca-alldeps";
-          paths = with pkgs; [
-            packages.xmonad-luca
-          ] ++ dependencies;
-
-          nativeBuildInputs = [ pkgs.makeWrapper ];
-          postBuild = ''
-            				    wrapProgram $out/bin/xmonad-luca \
-            				    --prefix PATH : $out/bin
-            				  '';
+            							mkdir -p $out/bin
+            							cp xmonad-luca $out/bin/xmonad-luca
+            							chmod +x $out/bin/xmonad-luca
+            						'';
+          preFixup = ''
+            						makeWrapper $out/bin/xmonad-luca \
+            							--prefix PATH : ${builtins.lib.makeBinPath dependencies}
+            					'';
         };
       }
     );
