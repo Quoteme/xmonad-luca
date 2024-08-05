@@ -65,7 +65,7 @@
           picom
           pulseaudio
           qt5ct
-          kvantum
+          kdePackages.qtstyleplugin-kvantum
           xclip
           xdotool
           xdotool
@@ -107,8 +107,13 @@
               #!/usr/bin/env bash
               echo "This script will build and install xmonad-luca to ~/.cache/xmonad/xmonad-x86_64-linux"
               nix build
-              cp -r result/bin ~/.cache/xmonad/xmonad-x86_64-linux
-              chmod +rw ~/.cache/xmonad/xmonad-x86_64-linux 
+              cp -r result/bin/xmonad-luca ~/.cache/xmonad/xmonad-x86_64-linux
+              if [ $? -eq 0 ]; then
+                echo "Copy successful."
+                chmod +rw ~/.cache/xmonad/xmonad-x86_64-linux 
+              else
+                echo "Copy failed."
+              fi
             '')
           ];
         };
