@@ -83,6 +83,7 @@
           buildInputs = with pkgs; [
             haskell-language-server
             haskellPackages.hoogle
+            bustle
             (haskellPackages.ghcWithPackages myHaskellPackages)
             (pkgs.writeShellScriptBin "install-xmonad-home" /*bash*/ ''
               #!/usr/bin/env bash
