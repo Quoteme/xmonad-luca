@@ -32,6 +32,13 @@ nextLayout state = state{layout = nextLayout'}
   currentLayout = layout state
   nextLayout' = ((!! 1) . dropWhile (/= currentLayout) . cycle) $ layouts state
 
+updateWorkspace :: X ()
+updateWorkspace = do
+  appstate <- XS.get :: X (TVar AppState)
+  -- get the current workspaces name
+  workspace <- gets windowset <&> S.currentTag
+  liftIO $ atomically $ modifyTVar appstate $ \s -> s{State.workspace = workspace}
+
 updateWorkspaces :: X ()
 updateWorkspaces = do
   appstate <- XS.get :: X (TVar State.AppState)

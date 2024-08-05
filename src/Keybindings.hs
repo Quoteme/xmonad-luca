@@ -271,7 +271,7 @@ myKeys config =
       , -- Workspace keys
         ("M-S-p", addName "Workspace: preview" $ spawn "xmonad-workspace-preview")
       ]
-        ^++^ ( [("M-" ++ show n, withNthWorkspace S.greedyView (n - 1)) | n <- [0 .. 9]]
+        ^++^ ( [("M-" ++ show n, withNthWorkspace S.greedyView (n - 1) >> State.updateWorkspace) | n <- [0 .. 9]]
                 ++ [("M-S-" ++ show n, withNthWorkspace S.shift (n - 1)) | n <- [0 .. 9]]
                 ++ [ (modifier ++ nth_key, windows $ function nth_workspace)
                    | (nth_key, nth_workspace) <- zip (map show [1 .. 9]) (workspaces config)
