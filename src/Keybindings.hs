@@ -270,18 +270,31 @@ myKeys config =
       , -- Workspace keys
         ("M-S-p", addName "Workspace: preview" $ spawn "xmonad-workspace-preview")
       ]
-        ^++^ ( [("M-" ++ show n, withNthWorkspace S.greedyView (n - 1) >> State.updateWorkspace) | n <- [0 .. 9]]
-                ++ [("M-S-" ++ show n, withNthWorkspace S.shift (n - 1)) | n <- [0 .. 9]]
-                ++ [ (modifier ++ nth_key, windows $ function nth_workspace)
-                   | (nth_key, nth_workspace) <- zip (map show [1 .. 9]) (workspaces config)
-                   , (modifier, function) <-
-                      [ ("M-C-", viewOnScreen 0)
-                      , ("M-M1-", viewOnScreen 1)
-                      -- , ("M-", S.greedyView)
-                      -- , ("M-S-", S.shift)
-                      ]
-                   ]
-             )
+        ++ concat
+          [ [
+              ( "M-" ++ show n
+              , addName ("Go to workspace " ++ show n) $ do
+                  withNthWorkspace S.greedyView (n - 1)
+                  State.updateWorkspace
+                  DBusServer.signalWorkspaceChanged
+              )
+            ,
+              ( "M-S-" ++ show n
+              , addName ("Move window to workspace " ++ show n) $ withNthWorkspace S.shift (n - 1)
+              )
+            ]
+          | n <- [0 .. 9]
+          ]
+          ^++^ ( [ (modifier ++ nth_key, windows $ function nth_workspace)
+                 | (nth_key, nth_workspace) <- zip (map show [1 .. 9]) (workspaces config)
+                 , (modifier, function) <-
+                    [ ("M-C-", viewOnScreen 0)
+                    , ("M-M1-", viewOnScreen 1)
+                    -- , ("M-", S.greedyView)
+                    -- , ("M-S-", S.shift)
+                    ]
+                 ]
+               )
  where
   -- Helper functions
   lowerMonBrigthness :: (MonadIO m) => m ()

@@ -62,19 +62,29 @@ start appState = do
   -- wait forever for calls
   forever (threadDelay 1000000)
 
-signalLayoutChanged :: X ()
-signalLayoutChanged = do
+{- | Emit a signal over DBUS that some value of the app state has changed.
+for an example, see [signalLayoutChanged].
+-}
+_signalAppStateChanged :: (IsVariant a) => String -> (State.AppState -> a) -> X ()
+_signalAppStateChanged memberName' stateAccessor = do
   appState <- XS.get :: X (TVar State.AppState)
   liftIO $ do
-    layout' <- atomically $ do
-      state <- readTVar appState
-      return $ State.layout state
+    state <- readTVarIO appState
     client <- connectSession
     emit client $
       ( signal
           (objectPath_ "/general")
           (interfaceName_ "org.xmonad.bus")
-          (memberName_ "LayoutChanged")
+          (memberName_ memberName')
       )
-        { signalBody = [toVariant layout']
+        { signalBody = [toVariant (stateAccessor state)]
         }
+
+signalLayoutChanged :: X ()
+signalLayoutChanged = _signalAppStateChanged "LayoutChanged" State.layout
+
+signalWorkspacesChanged :: X ()
+signalWorkspacesChanged = _signalAppStateChanged "WorkspacesChanged" State.workspaces
+
+signalWorkspaceChanged :: X ()
+signalWorkspaceChanged = _signalAppStateChanged "WorkspaceChanged" State.workspace
