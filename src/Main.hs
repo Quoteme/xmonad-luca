@@ -77,7 +77,6 @@ myStartupHook = do
   -- tabletModeHook
   spawnOnce "light-locker --lock-on-lid"
   spawnOnce "/etc/nixos/scripts/xidlehook.sh"
-  -- spawnOnce "xfce4-power-manager --daemon"
   spawnOnce "touchegg &"
   spawnOnce "sudo bluetooth off"
   spawnOnce "autoscreenrotation.sh &"
@@ -101,7 +100,6 @@ myStartupHook = do
   -- liftIO removeOldThumbnails
   spawnOnce "~/.autostart.sh"
   spawnOnce "launch-notification-manager"
-  spawnOnce "xfce4-panel --disable-wm-check"
   spawnOnce "xhost +si:localuser:$USER"
   setWMName "LG3D"
 
