@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Control.Monad (forever, when)
+import DBusServer qualified
 import Data.List (isInfixOf)
 import GHC.IO.Handle (hFlush, hGetLine)
 import Hooks (
@@ -106,6 +107,7 @@ myStartupHook = do
 -- Main
 main = do
   putStrLn "Starting XMonad"
+  DBusServer.start
   -- set myTerminal to the value of the environment variable "TERMINAL"
   -- if the environment variable is not set, use "alacritty"
   myTerminal <- lookupEnv "TERMINAL" >>= return . maybe "alacritty" id

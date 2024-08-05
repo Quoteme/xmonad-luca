@@ -50,7 +50,6 @@
           xmonad-extras
         ]);
         dependencies = with pkgs; [
-          # xfce.xfce4-namebar-plugin
           (haskellPackages.ghcWithPackages myHaskellPackages)
           brightnessctl
           gnome.zenity
@@ -69,28 +68,9 @@
           xclip
           xdotool
           xdotool
-          xfce.xfce4-battery-plugin
-          xfce.xfce4-clipman-plugin
-          xfce.xfce4-clipman-plugin
-          xfce.xfce4-cpufreq-plugin
-          xfce.xfce4-cpugraph-plugin
-          xfce.xfce4-datetime-plugin
-          xfce.xfce4-dockbarx-plugin
-          xfce.xfce4-fsguard-plugin
-          xfce.xfce4-genmon-plugin
-          xfce.xfce4-mailwatch-plugin
-          xfce.xfce4-notifyd
-          xfce.xfce4-panel
-          xfce.xfce4-panel-profiles
-          xfce.xfce4-power-manager
-          xfce.xfce4-pulseaudio-plugin
-          xfce.xfce4-sensors-plugin
-          xfce.xfce4-whiskermenu-plugin
-          xfce.xfce4-windowck-plugin
           xmonadctl
           xorg.xinput
           xorg.xmessage
-
           (writeShellScriptBin "launch-notification-manager" ''
             						${pkgs.xfce.xfce4-notifyd}/lib/xfce4/notifyd/xfce4-notifyd
             					'')
@@ -135,6 +115,7 @@
             ln -sf $src/* build
             ghc -o xmonad-luca \
               Main.hs \
+              DBusServer.hs \
               Utilities.hs \
               Constants.hs \
               Layouts/TreeLayout.hs \
