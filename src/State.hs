@@ -1,18 +1,21 @@
 module State where
 
-import Control.Concurrent.STM (TVar, atomically, newTVar, newTVarIO)
+import Control.Concurrent.STM (TVar, atomically, modifyTVar, newTVar, newTVarIO)
+import Data.Functor ((<&>))
 import GHC.IO (unsafePerformIO)
-import XMonad (ExtensionClass, initialValue)
+import XMonad (ExtensionClass, MonadIO (liftIO), WorkspaceId, X, XState (windowset), gets, initialValue)
+import XMonad.StackSet qualified as S
+import XMonad.Util.ExtensibleState qualified as XS
 
 data AppState = AppState
   { layout :: String
   , layouts :: [String]
   , workspace :: String
-  , workspaces :: [String]
+  , workspaces :: [WorkspaceId]
   }
 
 instance ExtensionClass (TVar AppState) where
-  initialValue = unsafePerformIO initialize
+  initialValue = unsafePerformIO $ newTVarIO def
 
 def :: AppState
 def =
@@ -20,7 +23,7 @@ def =
     { layout = "myBSP"
     , layouts = ["myBSP", "fullscreen"]
     , workspace = "0"
-    , workspaces = ["0", "1", "2"]
+    , workspaces = []
     }
 
 nextLayout :: AppState -> AppState
@@ -29,12 +32,18 @@ nextLayout state = state{layout = nextLayout'}
   currentLayout = layout state
   nextLayout' = ((!! 1) . dropWhile (/= currentLayout) . cycle) $ layouts state
 
-addWorkspace :: AppState -> String -> AppState
-addWorkspace state newWorkspace = state{workspaces = newWorkspace : workspaces state}
+updateWorkspaces :: X ()
+updateWorkspaces = do
+  appstate <- XS.get :: X (TVar State.AppState)
+  ws <- gets windowset <&> map S.tag . S.workspaces
+  liftIO $ atomically $ modifyTVar appstate $ \s -> s{State.workspaces = ws}
 
-removeWorkspace :: AppState -> String -> AppState
-removeWorkspace state workspaceToRemove = state{workspaces = filter (/= workspaceToRemove) $ workspaces state}
-
-initialize :: IO (TVar AppState)
-initialize =
-  newTVarIO def
+initialize :: X (TVar AppState)
+initialize = do
+  -- get a list of strings (workspace names)
+  ws <- gets windowset <&> map S.tag . S.workspaces
+  liftIO $
+    newTVarIO
+      def
+        { workspaces = ws
+        }

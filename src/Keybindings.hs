@@ -394,12 +394,14 @@ addLastWorkspace = do
   -- if we encountered some error, just use the length of the list
   let newName' = fromMaybe (show $ length workspaceTags + 1) newName
   addWorkspace newName'
+  State.updateWorkspaces
 
 removeLastWorkspace :: X ()
 removeLastWorkspace = do
   -- ask the X monad, which workspaces currently exist
   workspaceTags <- gets (map S.tag . S.workspaces . windowset)
   removeWorkspace
+  State.updateWorkspaces
 
 -- unless (null workspaceTags) $
 --   removeWorkspaceByTag $

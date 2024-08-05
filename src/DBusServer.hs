@@ -34,6 +34,12 @@ start appState = do
           [ autoMethod (memberName_ "Layout") $ do
               state <- readTVarIO appState
               return (State.layout state)
+          , autoMethod (memberName_ "Layouts") $ do
+              state <- readTVarIO appState
+              return (State.layouts state)
+          , autoMethod (memberName_ "Workspaces") $ do
+              state <- readTVarIO appState
+              return (State.workspaces state)
           , autoMethod (memberName_ "Hello") sayHello
           ]
       }

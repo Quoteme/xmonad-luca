@@ -76,7 +76,7 @@ import XMonad.Util.SpawnOnce (spawnOnOnce, spawnOnce)
 myStartupHook :: X ()
 myStartupHook = do
   -- DBUS
-  appstate <- liftIO State.initialize
+  appstate <- State.initialize
   XS.put appstate
   liftIO $ forkIO $ DBusServer.start appstate
   -- Other startup hooks
