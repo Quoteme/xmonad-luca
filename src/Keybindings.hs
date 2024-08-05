@@ -407,6 +407,7 @@ addLastWorkspace = do
   let newName' = fromMaybe (show $ length workspaceTags + 1) newName
   addWorkspace newName'
   State.updateWorkspaces
+  DBusServer.signalWorkspacesChanged
 
 removeLastWorkspace :: X ()
 removeLastWorkspace = do
@@ -414,6 +415,7 @@ removeLastWorkspace = do
   workspaceTags <- gets (map S.tag . S.workspaces . windowset)
   removeWorkspace
   State.updateWorkspaces
+  DBusServer.signalWorkspacesChanged
 
 -- unless (null workspaceTags) $
 --   removeWorkspaceByTag $

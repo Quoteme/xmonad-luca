@@ -1,7 +1,9 @@
 module State where
 
 import Control.Concurrent.STM (TVar, atomically, modifyTVar, newTVar, newTVarIO)
+import Data.Function ((&))
 import Data.Functor ((<&>))
+import Data.List (sort)
 import GHC.IO (unsafePerformIO)
 import XMonad (ExtensionClass, MonadIO (liftIO), WorkspaceId, X, XState (windowset), gets, initialValue)
 import XMonad.StackSet qualified as S
@@ -42,7 +44,7 @@ updateWorkspace = do
 updateWorkspaces :: X ()
 updateWorkspaces = do
   appstate <- XS.get :: X (TVar State.AppState)
-  ws <- gets windowset <&> map S.tag . S.workspaces
+  ws <- gets windowset <&> map S.tag . S.workspaces <&> sort
   liftIO $ atomically $ modifyTVar appstate $ \s -> s{State.workspaces = ws}
 
 initialize :: X (TVar AppState)
