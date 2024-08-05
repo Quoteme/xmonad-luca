@@ -8,12 +8,17 @@ module Keybindings where
 
 -- for some fullscreen events, also for xcomposite in obs.
 
+import Constants qualified
 import Control.Concurrent (threadDelay)
+import Control.Concurrent.STM
 import Control.Monad (unless)
+import DBusServer qualified
 import Data.List (elemIndex)
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
 import Data.Map qualified as M
 import Data.Maybe (fromJust, isJust)
+import Data.Text qualified as T
+import Data.Text.IO qualified as Tio
 import Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 import Graphics.X11.ExtraTypes.XF86
 import LaptopMode
@@ -77,13 +82,6 @@ import XMonad.Util.NamedActions (addDescrKeys, addName, subtitle, xMessage, (^++
 import XMonad.Util.Run (runProcessWithInput, spawnPipe)
 import XMonad.Util.SpawnOnce
 
--- writeText will write a string to a file using data.Text
-
-import Constants qualified
-import Control.Concurrent.STM
-import Data.Text qualified as T
-import Data.Text.IO qualified as Tio
-
 -- My own keybindings
 myKeys config =
   (subtitle "Custom Keys" :) $
@@ -121,6 +119,7 @@ myKeys config =
         , addName "Layout: next" $ do
             appstate <- XS.get :: X (TVar State.AppState)
             liftIO $ atomically $ modifyTVar appstate State.nextLayout
+            DBusServer.signalLayoutChanged
             sendMessage NextLayout
         )
       , ("M-S-<Space>", addName "Layout: default" $ setLayout $ layoutHook config)

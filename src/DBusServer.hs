@@ -8,6 +8,8 @@ import DBus
 import DBus.Client
 import DBus.Introspection (Signal (Signal, signalArgs, signalName))
 import State qualified
+import XMonad (X, liftIO)
+import XMonad.Util.ExtensibleState qualified as XS
 
 start :: TVar State.AppState -> IO ()
 start appState = do
@@ -60,13 +62,19 @@ start appState = do
   -- wait forever for calls
   forever (threadDelay 1000000)
 
-signalLayoutChanged :: Client -> IO ()
-signalLayoutChanged client = do
-  emit client $
-    ( signal
-        (objectPath_ "/general")
-        (interfaceName_ "org.xmonad.bus")
-        (memberName_ "LayoutChanged")
-    )
-      { signalBody = [toVariant "hallo"]
-      }
+signalLayoutChanged :: X ()
+signalLayoutChanged = do
+  appState <- XS.get :: X (TVar State.AppState)
+  liftIO $ do
+    layout' <- atomically $ do
+      state <- readTVar appState
+      return $ State.layout state
+    client <- connectSession
+    emit client $
+      ( signal
+          (objectPath_ "/general")
+          (interfaceName_ "org.xmonad.bus")
+          (memberName_ "LayoutChanged")
+      )
+        { signalBody = [toVariant layout']
+        }
