@@ -23,6 +23,12 @@ def =
     , workspaces = ["0", "1", "2"]
     }
 
+nextLayout :: AppState -> AppState
+nextLayout state = state{layout = nextLayout'}
+ where
+  currentLayout = layout state
+  nextLayout' = ((!! 1) . dropWhile (/= currentLayout) . cycle) $ layouts state
+
 addWorkspace :: AppState -> String -> AppState
 addWorkspace state newWorkspace = state{workspaces = newWorkspace : workspaces state}
 

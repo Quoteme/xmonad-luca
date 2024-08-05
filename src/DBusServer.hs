@@ -8,9 +8,6 @@ import DBus
 import DBus.Client
 import State qualified
 
-ping :: MethodCall -> IO Reply
-ping _ = pure $ ReplyReturn []
-
 sayHello :: String -> IO String
 sayHello name = return ("Hello " ++ name ++ "!")
 
@@ -34,11 +31,9 @@ start appState = do
     defaultInterface
       { interfaceName = (interfaceName_ "org.xmonad.bus")
       , interfaceMethods =
-          [ makeMethod
-              (memberName_ "Ping")
-              (signature_ [TypeString])
-              (signature_ [TypeString])
-              (liftIO . ping)
+          [ autoMethod (memberName_ "Layout") $ do
+              state <- readTVarIO appState
+              return (State.layout state)
           , autoMethod (memberName_ "Hello") sayHello
           ]
       }
