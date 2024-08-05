@@ -1,10 +1,12 @@
 module DBusServer where
 
 import Control.Concurrent
+import Control.Concurrent.STM
 import Control.Monad
 import Control.Monad.IO.Class
 import DBus
 import DBus.Client
+import State qualified
 
 ping :: MethodCall -> IO Reply
 ping _ = pure $ ReplyReturn []
@@ -12,8 +14,8 @@ ping _ = pure $ ReplyReturn []
 sayHello :: String -> IO String
 sayHello name = return ("Hello " ++ name ++ "!")
 
-start :: IO ()
-start = do
+start :: TVar State.AppState -> IO ()
+start appState = do
   putStrLn "Starting DBus server"
   client <- connectSession
   requestResult <-

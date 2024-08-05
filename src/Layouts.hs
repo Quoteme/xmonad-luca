@@ -55,7 +55,7 @@ myLayout =
   avoidStruts myTabletMode
     -- \||| (animate . avoidStruts) myTabletMode
     -- \||| (smartBorders . hiddenWindows . maximize . minimize . BW.boringWindows . avoidStruts) emptyTreeLayout
-    ||| myFullscreen
+    ||| avoidStruts myFullscreen
  where
   -- TODO: add tabs to this layout
   myBSP =
@@ -89,7 +89,7 @@ extendedWindowSwitcherDecoration s = decoration s myOwnTheme EWSD
 -- Custom layout
 data ExtendedWindowSwitcherDecoration a = EWSD deriving (Show, Read)
 
-instance Eq a => DecorationStyle ExtendedWindowSwitcherDecoration a where
+instance (Eq a) => DecorationStyle ExtendedWindowSwitcherDecoration a where
   describeDeco _ = "ExtendedWindowSwitcherDecoration"
   decorationCatchClicksHook EWSD mainw dFl dFr = do
     handleButtons dFl dFr
