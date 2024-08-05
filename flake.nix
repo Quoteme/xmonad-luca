@@ -82,6 +82,7 @@
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             haskell-language-server
+            haskellPackages.hoogle
             (haskellPackages.ghcWithPackages myHaskellPackages)
             (pkgs.writeShellScriptBin "install-xmonad-home" /*bash*/ ''
               #!/usr/bin/env bash
