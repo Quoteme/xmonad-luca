@@ -27,6 +27,7 @@ import XMonad.Util.Hacks (windowedFullscreenFixEventHook)
 import DBusServer qualified
 import Keybindings
 import LaptopMode
+import State qualified
 import Text.Format
 import Thumbnail
 import Utilities
@@ -112,7 +113,8 @@ myEventHook =
 myLogHook :: X ()
 myLogHook = do
   DBusServer.signalWindowChanged
-  DBusServer.signalMinimizedChanged
+  State.updateMinimizedWindows
+  DBusServer.signalMinimizedWindowsChanged
   -- thumbnailhook disabled, because I do not use it that much (maybe this saves battery?)
   -- thumbnailHook
   return ()

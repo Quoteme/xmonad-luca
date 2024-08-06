@@ -46,6 +46,9 @@ start appState = do
           , autoMethod (memberName_ "Workspaces") $ do
               state <- readTVarIO appState
               return (State.workspaces state)
+          , autoMethod (memberName_ "MinimizedWindows") $ do
+              state <- readTVarIO appState
+              return (State.minimizedWindows state)
           ]
       , interfaceSignals =
           [ Signal
@@ -100,6 +103,9 @@ signalWorkspacesChanged = _signalAppStateChanged "WorkspacesChanged" State.works
 signalWorkspaceChanged :: X ()
 signalWorkspaceChanged = _signalAppStateChanged "WorkspaceChanged" State.workspace
 
+signalMinimizedWindowsChanged :: X ()
+signalMinimizedWindowsChanged = _signalAppStateChanged "MinimizedWindowsChanged" State.minimizedWindows
+
 -- | Emit a signal over DBUS that the focused window has changed.
 signalWindowChanged :: X ()
 signalWindowChanged = do
@@ -116,31 +122,3 @@ signalWindowChanged = do
         )
           { signalBody = [toVariant windowName]
           }
-
-type MinimizedWindows = [(Window, String)]
-
--- | Emit a signal over DBUS that the list of minimized windows has changed.
-signalMinimizedChanged :: X ()
-signalMinimizedChanged = do
-  minimized' <- withMinimized pure
-  minimized <-
-    mapM
-      ( \w -> do
-          windowName <- runQuery title w
-          return (w, windowName)
-      )
-      minimized' ::
-      X MinimizedWindows
-  liftIO $ do
-    client <- connectSession
-    emit client $
-      ( signal
-          (objectPath_ "/general")
-          (interfaceName_ "org.xmonad.bus")
-          (memberName_ "MinimizedWindowsChanged")
-      )
-        { signalBody = [_serializeMinimizedWindows minimized]
-        }
- where
-  _serializeMinimizedWindows :: MinimizedWindows -> Variant
-  _serializeMinimizedWindows x = toVariant [toVariant (toVariant w, toVariant n) | (w, n) <- x]

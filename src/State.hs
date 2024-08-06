@@ -5,9 +5,12 @@ import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.List (sort, sortOn)
 import GHC.IO (unsafePerformIO)
-import XMonad (ExtensionClass, MonadIO (liftIO), WorkspaceId, X, XState (windowset), gets, initialValue)
+import XMonad (ExtensionClass, MonadIO (liftIO), Window, WorkspaceId, X, XState (windowset), gets, initialValue, runQuery, title)
+import XMonad.Actions.Minimize (withMinimized)
 import XMonad.StackSet qualified as S
 import XMonad.Util.ExtensibleState qualified as XS
+
+type MinimizedWindows = [(Window, String)]
 
 {- | WorkspaceInfo is a tuple of the:
 workspace name,
@@ -21,6 +24,7 @@ data AppState = AppState
   , layouts :: [String]
   , workspace :: String
   , workspaces :: [WorkspaceInfo]
+  , minimizedWindows :: MinimizedWindows
   }
 
 instance ExtensionClass (TVar AppState) where
@@ -33,6 +37,7 @@ def =
     , layouts = ["myBSP", "fullscreen"]
     , workspace = "0"
     , workspaces = []
+    , minimizedWindows = []
     }
 
 nextLayout :: AppState -> AppState
@@ -62,6 +67,20 @@ updateWorkspaces = do
   appstate <- XS.get :: X (TVar State.AppState)
   wi <- _getWorkspaces
   liftIO $ atomically $ modifyTVar appstate $ \s -> s{State.workspaces = wi}
+
+updateMinimizedWindows :: X ()
+updateMinimizedWindows = do
+  appstate <- XS.get :: X (TVar State.AppState)
+  minimized' <- withMinimized pure
+  minimized <-
+    mapM
+      ( \w -> do
+          windowName <- runQuery title w
+          return (w, windowName)
+      )
+      minimized' ::
+      X MinimizedWindows
+  liftIO $ atomically $ modifyTVar appstate $ \s -> s{State.minimizedWindows = minimized}
 
 initialize :: X (TVar AppState)
 initialize = do
