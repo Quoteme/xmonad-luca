@@ -7,8 +7,10 @@ import Control.Monad.IO.Class
 import DBus
 import DBus.Client
 import DBus.Introspection (Signal (Signal, signalArgs, signalName))
+import Data.Function ((&))
 import State qualified
-import XMonad (X, liftIO)
+import XMonad (X, XState (windowset), appName, gets, liftIO, runQuery, title, whenJust)
+import XMonad.StackSet (peek)
 import XMonad.Util.ExtensibleState qualified as XS
 
 start :: TVar State.AppState -> IO ()
@@ -57,6 +59,10 @@ start appState = do
               { signalName = memberName_ "WorkspaceChanged"
               , signalArgs = []
               }
+          , Signal
+              { signalName = memberName_ "WindowChanged"
+              , signalArgs = []
+              }
           ]
       }
   -- wait forever for calls
@@ -88,3 +94,20 @@ signalWorkspacesChanged = _signalAppStateChanged "WorkspacesChanged" State.works
 
 signalWorkspaceChanged :: X ()
 signalWorkspaceChanged = _signalAppStateChanged "WorkspaceChanged" State.workspace
+
+-- | Emit a signal over DBUS that the focused window has changed.
+signalWindowChanged :: X ()
+signalWindowChanged = do
+  fw <- gets $ peek . windowset
+  whenJust fw $ \w -> do
+    windowName <- runQuery title w
+    liftIO $ do
+      client <- connectSession
+      emit client $
+        ( signal
+            (objectPath_ "/general")
+            (interfaceName_ "org.xmonad.bus")
+            (memberName_ "WindowChanged")
+        )
+          { signalBody = [toVariant windowName]
+          }

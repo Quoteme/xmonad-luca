@@ -84,6 +84,7 @@
             haskell-language-server
             haskellPackages.hoogle
             bustle
+            d-spy
             (haskellPackages.ghcWithPackages myHaskellPackages)
             (pkgs.writeShellScriptBin "install-xmonad-home" /*bash*/ ''
               #!/usr/bin/env bash
