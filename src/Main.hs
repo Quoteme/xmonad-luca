@@ -99,7 +99,7 @@ myStartupHook = do
   spawnOnce "xinput disable \"ThinkPad Extra Buttons\""
   spawnOnce "nitrogen --restore &"
   spawnOnce "batsignal -b -n BAT0"
-  spawnOnce "com.slack.Slack"
+  -- spawnOnce "com.slack.Slack"
   spawnOnce "/etc/nixos/scripts/autohibernate.sh"
   spawnOnOnce "3" "thunderbird"
   spawnOnce "pactl load-module module-bluetooth-policy auto_switch=2"
