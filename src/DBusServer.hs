@@ -64,6 +64,10 @@ start appState = do
               { signalName = memberName_ "WindowChanged"
               , signalArgs = []
               }
+          , Signal
+              { signalName = memberName_ "MinimizedWindowsChanged"
+              , signalArgs = []
+              }
           ]
       }
   -- wait forever for calls
@@ -133,7 +137,7 @@ signalMinimizedChanged = do
       ( signal
           (objectPath_ "/general")
           (interfaceName_ "org.xmonad.bus")
-          (memberName_ "WindowChanged")
+          (memberName_ "MinimizedWindowsChanged")
       )
         { signalBody = [_serializeMinimizedWindows minimized]
         }
