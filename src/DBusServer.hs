@@ -104,7 +104,10 @@ signalWorkspaceChanged :: X ()
 signalWorkspaceChanged = _signalAppStateChanged "WorkspaceChanged" State.workspace
 
 signalMinimizedWindowsChanged :: X ()
-signalMinimizedWindowsChanged = _signalAppStateChanged "MinimizedWindowsChanged" State.minimizedWindows
+signalMinimizedWindowsChanged = _signalAppStateChanged "MinimizedWindowsChanged" (_serializeMinimizedWindows . State.minimizedWindows)
+ where
+  _serializeMinimizedWindows :: State.MinimizedWindows -> Variant
+  _serializeMinimizedWindows x = toVariant [toVariant (toVariant w, toVariant n) | (w, n) <- x]
 
 -- | Emit a signal over DBUS that the focused window has changed.
 signalWindowChanged :: X ()
