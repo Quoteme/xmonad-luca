@@ -3,17 +3,24 @@ module State where
 import Control.Concurrent.STM (TVar, atomically, modifyTVar, newTVar, newTVarIO)
 import Data.Function ((&))
 import Data.Functor ((<&>))
-import Data.List (sort)
+import Data.List (sort, sortOn)
 import GHC.IO (unsafePerformIO)
 import XMonad (ExtensionClass, MonadIO (liftIO), WorkspaceId, X, XState (windowset), gets, initialValue)
 import XMonad.StackSet qualified as S
 import XMonad.Util.ExtensibleState qualified as XS
 
+{- | WorkspaceInfo is a tuple of the:
+workspace name,
+whether it is visible and
+whether it is focused
+-}
+type WorkspaceInfo = (WorkspaceId, Bool, Bool)
+
 data AppState = AppState
   { layout :: String
   , layouts :: [String]
   , workspace :: String
-  , workspaces :: [WorkspaceId]
+  , workspaces :: [WorkspaceInfo]
   }
 
 instance ExtensionClass (TVar AppState) where
@@ -41,18 +48,27 @@ updateWorkspace = do
   workspace <- gets windowset <&> S.currentTag
   liftIO $ atomically $ modifyTVar appstate $ \s -> s{State.workspace = workspace}
 
+_getWorkspaces :: X [WorkspaceInfo]
+_getWorkspaces = do
+  ws <- gets windowset
+  (S.current ws & S.workspace & S.tag, True, True)
+    : [(w & S.workspace & S.tag, True, False) | w <- S.visible ws]
+    ++ [(w & S.tag, False, False) | w <- S.hidden ws]
+    & sortOn (\(w, _, _) -> w)
+    & pure
+
 updateWorkspaces :: X ()
 updateWorkspaces = do
   appstate <- XS.get :: X (TVar State.AppState)
-  ws <- gets windowset <&> map S.tag . S.workspaces <&> sort
-  liftIO $ atomically $ modifyTVar appstate $ \s -> s{State.workspaces = ws}
+  wi <- _getWorkspaces
+  liftIO $ atomically $ modifyTVar appstate $ \s -> s{State.workspaces = wi}
 
 initialize :: X (TVar AppState)
 initialize = do
   -- get a list of strings (workspace names)
-  ws <- gets windowset <&> map S.tag . S.workspaces
+  wi <- _getWorkspaces
   liftIO $
     newTVarIO
       def
-        { workspaces = ws
+        { workspaces = wi
         }
