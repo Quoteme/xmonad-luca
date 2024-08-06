@@ -9,7 +9,8 @@ import DBus.Client
 import DBus.Introspection (Signal (Signal, signalArgs, signalName))
 import Data.Function ((&))
 import State qualified
-import XMonad (X, XState (windowset), appName, gets, liftIO, runQuery, title, whenJust)
+import XMonad (Window, X, XState (windowset), appName, gets, liftIO, runQuery, title, whenJust)
+import XMonad.Actions.Minimize (withMinimized)
 import XMonad.StackSet (peek)
 import XMonad.Util.ExtensibleState qualified as XS
 
@@ -111,3 +112,31 @@ signalWindowChanged = do
         )
           { signalBody = [toVariant windowName]
           }
+
+type MinimizedWindows = [(Window, String)]
+
+-- | Emit a signal over DBUS that the list of minimized windows has changed.
+signalMinimizedChanged :: X ()
+signalMinimizedChanged = do
+  minimized' <- withMinimized pure
+  minimized <-
+    mapM
+      ( \w -> do
+          windowName <- runQuery title w
+          return (w, windowName)
+      )
+      minimized' ::
+      X MinimizedWindows
+  liftIO $ do
+    client <- connectSession
+    emit client $
+      ( signal
+          (objectPath_ "/general")
+          (interfaceName_ "org.xmonad.bus")
+          (memberName_ "WindowChanged")
+      )
+        { signalBody = [_serializeMinimizedWindows minimized]
+        }
+ where
+  _serializeMinimizedWindows :: MinimizedWindows -> Variant
+  _serializeMinimizedWindows x = toVariant [toVariant (toVariant w, toVariant n) | (w, n) <- x]

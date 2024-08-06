@@ -112,6 +112,7 @@ myEventHook =
 myLogHook :: X ()
 myLogHook = do
   DBusServer.signalWindowChanged
+  DBusServer.signalMinimizedChanged
   -- thumbnailhook disabled, because I do not use it that much (maybe this saves battery?)
   -- thumbnailHook
   return ()
