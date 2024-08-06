@@ -8,16 +8,22 @@ module Keybindings where
 
 -- for some fullscreen events, also for xcomposite in obs.
 
+import Constants qualified
 import Control.Concurrent (threadDelay)
+import Control.Concurrent.STM
 import Control.Monad (unless)
+import DBusServer qualified
 import Data.List (elemIndex)
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
 import Data.Map qualified as M
 import Data.Maybe (fromJust, isJust)
+import Data.Text qualified as T
+import Data.Text.IO qualified as Tio
 import Data.Time.Clock.POSIX (POSIXTime, getPOSIXTime)
 import Graphics.X11.ExtraTypes.XF86
 import LaptopMode
 import Options
+import State qualified
 import System.Directory (getHomeDirectory, listDirectory, removeFile)
 import System.Environment (lookupEnv)
 import System.Exit
@@ -76,12 +82,6 @@ import XMonad.Util.NamedActions (addDescrKeys, addName, subtitle, xMessage, (^++
 import XMonad.Util.Run (runProcessWithInput, spawnPipe)
 import XMonad.Util.SpawnOnce
 
--- writeText will write a string to a file using data.Text
-
-import Constants qualified
-import Data.Text qualified as T
-import Data.Text.IO qualified as Tio
-
 -- My own keybindings
 myKeys config =
   (subtitle "Custom Keys" :) $
@@ -114,7 +114,14 @@ myKeys config =
       , ("M-S-s", addName "Screenshot" $ spawn "flameshot gui")
       , ("M-S-C-s", addName "Simple screenshot" $ spawn "maim -su | xclip -selection clipboard -t image/png")
       , ("M-S-q", addName "Kill window" $ kill)
-      , ("M-<Space>", addName "Layout: next" $ sendMessage NextLayout)
+      ,
+        ( "M-<Space>"
+        , addName "Layout: next" $ do
+            appstate <- XS.get :: X (TVar State.AppState)
+            liftIO $ atomically $ modifyTVar appstate State.nextLayout
+            DBusServer.signalLayoutChanged
+            sendMessage NextLayout
+        )
       , ("M-S-<Space>", addName "Layout: default" $ setLayout $ layoutHook config)
       , -- 🔄 Rotational Focus Movement
         ("M-<Tab>", addName "WindowStack: rotate next" $ windows S.focusDown >> myUpdateFocus)
@@ -263,49 +270,62 @@ myKeys config =
       , -- Workspace keys
         ("M-S-p", addName "Workspace: preview" $ spawn "xmonad-workspace-preview")
       ]
-        ^++^ ( [("M-" ++ show n, withNthWorkspace S.greedyView (n - 1)) | n <- [0 .. 9]]
-                ++ [("M-S-" ++ show n, withNthWorkspace S.shift (n - 1)) | n <- [0 .. 9]]
-                ++ [ (modifier ++ nth_key, windows $ function nth_workspace)
-                   | (nth_key, nth_workspace) <- zip (map show [1 .. 9]) (workspaces config)
-                   , (modifier, function) <-
-                      [ ("M-C-", viewOnScreen 0)
-                      , ("M-M1-", viewOnScreen 1)
-                      -- , ("M-", S.greedyView)
-                      -- , ("M-S-", S.shift)
-                      ]
-                   ]
-             )
+        ++ concat
+          [ [
+              ( "M-" ++ show n
+              , addName ("Go to workspace " ++ show n) $ do
+                  withNthWorkspace S.greedyView (n - 1)
+                  State.updateWorkspace
+                  DBusServer.signalWorkspaceChanged
+              )
+            ,
+              ( "M-S-" ++ show n
+              , addName ("Move window to workspace " ++ show n) $ withNthWorkspace S.shift (n - 1)
+              )
+            ]
+          | n <- [0 .. 9]
+          ]
+          ^++^ ( [ (modifier ++ nth_key, windows $ function nth_workspace)
+                 | (nth_key, nth_workspace) <- zip (map show [1 .. 9]) (workspaces config)
+                 , (modifier, function) <-
+                    [ ("M-C-", viewOnScreen 0)
+                    , ("M-M1-", viewOnScreen 1)
+                    -- , ("M-", S.greedyView)
+                    -- , ("M-S-", S.shift)
+                    ]
+                 ]
+               )
  where
   -- Helper functions
-  lowerMonBrigthness :: MonadIO m => m ()
+  lowerMonBrigthness :: (MonadIO m) => m ()
   lowerMonBrigthness = do
     spawn "brightnessctl set 5%-"
     currentBrightnessStr <- runProcessWithInput "brightnessctl" ["get"] ""
     let currentBrightness = read currentBrightnessStr :: Double
     showProgress "Monitor Brightness" currentBrightness 256
-  raiseMonBrigthness :: MonadIO m => m ()
+  raiseMonBrigthness :: (MonadIO m) => m ()
   raiseMonBrigthness = do
     spawn "brightnessctl set 5%+"
     currentBrightnessStr <- runProcessWithInput "brightnessctl" ["get"] ""
     let currentBrightness = read currentBrightnessStr :: Double
     showProgress "Monitor Brightness" currentBrightness 256
-  lowerKbdBrigthness :: MonadIO m => m ()
+  lowerKbdBrigthness :: (MonadIO m) => m ()
   lowerKbdBrigthness = do
     spawn "brightnessctl --device=\"asus::kbd_backlight\" set 1-"
     curr <- runProcessWithInput "brightnessctl" ["--device=\"asus::kbd_backlight\"", "get"] ""
     spawn $ "notify-send 'Keyboard Brightness' 'lowered to " ++ curr ++ "' --replace-id=" ++ show Constants.notificationBrightnessId
-  raiseKbdBrigthness :: MonadIO m => m ()
+  raiseKbdBrigthness :: (MonadIO m) => m ()
   raiseKbdBrigthness = do
     spawn "brightnessctl --device=\"asus::kbd_backlight\" set 1+"
     curr <- runProcessWithInput "brightnessctl" ["--device=\"asus::kbd_backlight\"", "get"] ""
     spawn $ "notify-send 'Keyboard Brightness' 'raised to " ++ curr ++ "' --replace-id=" ++ show Constants.notificationBrightnessId
-  lowerAudio :: MonadIO m => m ()
+  lowerAudio :: (MonadIO m) => m ()
   lowerAudio = spawn "pamixer --increase 5"
-  raiseAudio :: MonadIO m => m ()
+  raiseAudio :: (MonadIO m) => m ()
   raiseAudio = spawn "pamixer --decrease 5"
   myUpdateFocus = updatePointer (0.5, 0.5) (0.1, 0.1)
   -- \| Show a notificaiton about some progress with a small progress bar
-  showProgress :: MonadIO m => String -> Double -> Double -> m ()
+  showProgress :: (MonadIO m) => String -> Double -> Double -> m ()
   showProgress title progress total = do
     spawn $
       "notify-send -u low '"
@@ -365,12 +385,12 @@ myAdditionalKeys config =
       then enableTouchpad
       else disableTouchpad
     XS.put $ KeyboardToggleState $ not state
-  enableTouchpad :: MonadIO m => m ()
+  enableTouchpad :: (MonadIO m) => m ()
   enableTouchpad =
     spawn "xinput --enable \"ELAN1201:00 04F3:3098 Touchpad\""
       *> spawn "xinput --enable \"AT Translated Set 2 keyboard\""
       *> spawn "notify-send 'touchpad enabled'"
-  disableTouchpad :: MonadIO m => m ()
+  disableTouchpad :: (MonadIO m) => m ()
   disableTouchpad =
     spawn "xinput --disable \"ELAN1201:00 04F3:3098 Touchpad\""
       *> spawn "xinput --disable \"AT Translated Set 2 keyboard\""
@@ -386,12 +406,16 @@ addLastWorkspace = do
   -- if we encountered some error, just use the length of the list
   let newName' = fromMaybe (show $ length workspaceTags + 1) newName
   addWorkspace newName'
+  State.updateWorkspaces
+  DBusServer.signalWorkspacesChanged
 
 removeLastWorkspace :: X ()
 removeLastWorkspace = do
   -- ask the X monad, which workspaces currently exist
   workspaceTags <- gets (map S.tag . S.workspaces . windowset)
   removeWorkspace
+  State.updateWorkspaces
+  DBusServer.signalWorkspacesChanged
 
 -- unless (null workspaceTags) $
 --   removeWorkspaceByTag $
