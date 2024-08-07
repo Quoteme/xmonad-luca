@@ -28,14 +28,6 @@
           ];
           config.allowBroken = true;
         };
-        xmonadctl = (pkgs.callPackage
-          (pkgs.fetchFromGitHub {
-            owner = "quoteme";
-            repo = "xmonadctl";
-            rev = "v1.0";
-            sha256 = "1bjf3wnxsghfb64jji53m88vpin916yqlg3j0r83kz9k79vqzqxd";
-          })
-          { });
         myHaskellPackages = (hpkgs: with hpkgs; [
           # TODO: add the floating-window-decorations patch from:
           # https://github.com/xmonad/xmonad/issues/355
@@ -68,7 +60,6 @@
           xclip
           xdotool
           xdotool
-          xmonadctl
           xorg.xinput
           xorg.xmessage
           (writeShellScriptBin "launch-notification-manager" ''
@@ -111,7 +102,7 @@
             makeWrapper
           ];
 
-          buildInputs = dependencies;
+          buildInputs = dependencies ++ [ packages.xmonadctl ];
 
           buildPhase = ''
             mkdir build
@@ -136,7 +127,26 @@
 
           preFixup = ''
             wrapProgram "$out/bin/xmonad-luca" \
-              --prefix PATH : ${pkgs.lib.makeBinPath dependencies}
+              --prefix PATH : ${pkgs.lib.makeBinPath (dependencies ++ [packages.xmonadctl])}
+          '';
+        };
+
+        packages.xmonadctl = pkgs.stdenv.mkDerivation {
+          name = "xmonadctl";
+          pname = "xmonadctl";
+          version = "1.0";
+          src = ./xmonadctl;
+
+          buildInputs = with pkgs; [
+            (pkgs.haskellPackages.ghcWithPackages (pkgs: [ pkgs.X11 ]))
+          ];
+          buildPhase = ''
+            ghc --make Main.hs
+          '';
+          installPhase = ''
+            mkdir -p $out/bin
+            cp Main $out/bin/xmonadctl
+            chmod +x $out/bin/xmonadctl
           '';
         };
       }
