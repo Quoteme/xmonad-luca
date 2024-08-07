@@ -275,8 +275,8 @@ myKeys config =
               ( "M-" ++ show n
               , addName ("Go to workspace " ++ show n) $ do
                   withNthWorkspace S.greedyView (n - 1)
-                  State.updateWorkspace
-                  DBusServer.signalWorkspaceChanged
+                  State.updateWorkspaces
+                  DBusServer.signalWorkspacesChanged
               )
             ,
               ( "M-S-" ++ show n

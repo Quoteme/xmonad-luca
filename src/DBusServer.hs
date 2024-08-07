@@ -40,9 +40,6 @@ start appState = do
           , autoMethod (memberName_ "Layouts") $ do
               state <- readTVarIO appState
               return (State.layouts state)
-          , autoMethod (memberName_ "Workspace") $ do
-              state <- readTVarIO appState
-              return (State.workspace state)
           , autoMethod (memberName_ "Workspaces") $ do
               state <- readTVarIO appState
               return (State.workspaces state)
@@ -57,10 +54,6 @@ start appState = do
               }
           , Signal
               { signalName = memberName_ "WorkspacesChanged"
-              , signalArgs = []
-              }
-          , Signal
-              { signalName = memberName_ "WorkspaceChanged"
               , signalArgs = []
               }
           , Signal
@@ -99,9 +92,6 @@ signalLayoutChanged = _signalAppStateChanged "LayoutChanged" State.layout
 
 signalWorkspacesChanged :: X ()
 signalWorkspacesChanged = _signalAppStateChanged "WorkspacesChanged" State.workspaces
-
-signalWorkspaceChanged :: X ()
-signalWorkspaceChanged = _signalAppStateChanged "WorkspaceChanged" State.workspace
 
 signalMinimizedWindowsChanged :: X ()
 signalMinimizedWindowsChanged = _signalAppStateChanged "MinimizedWindowsChanged" (_serializeMinimizedWindows . State.minimizedWindows)

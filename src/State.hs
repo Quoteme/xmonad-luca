@@ -22,7 +22,6 @@ type WorkspaceInfo = (WorkspaceId, Bool, Bool)
 data AppState = AppState
   { layout :: String
   , layouts :: [String]
-  , workspace :: String
   , workspaces :: [WorkspaceInfo]
   , minimizedWindows :: MinimizedWindows
   }
@@ -35,7 +34,6 @@ def =
   AppState
     { layout = "myBSP"
     , layouts = ["myBSP", "fullscreen"]
-    , workspace = "0"
     , workspaces = []
     , minimizedWindows = []
     }
@@ -45,13 +43,6 @@ nextLayout state = state{layout = nextLayout'}
  where
   currentLayout = layout state
   nextLayout' = ((!! 1) . dropWhile (/= currentLayout) . cycle) $ layouts state
-
-updateWorkspace :: X ()
-updateWorkspace = do
-  appstate <- XS.get :: X (TVar AppState)
-  -- get the current workspaces name
-  workspace <- gets windowset <&> S.currentTag
-  liftIO $ atomically $ modifyTVar appstate $ \s -> s{State.workspace = workspace}
 
 _getWorkspaces :: X [WorkspaceInfo]
 _getWorkspaces = do

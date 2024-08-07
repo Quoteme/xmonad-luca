@@ -110,6 +110,7 @@ myStartupHook = do
   spawnOnce "picom"
   -- liftIO removeOldThumbnails
   spawnOnce "~/.autostart.sh"
+  spawnOnce "~/.local/bin/lucapanel"
   spawnOnce "launch-notification-manager"
   spawnOnce "xhost +si:localuser:$USER"
   setWMName "LG3D"
