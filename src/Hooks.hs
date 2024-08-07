@@ -28,6 +28,7 @@ import DBusServer qualified
 import Keybindings
 import LaptopMode
 import State qualified
+import System.Process (readProcess)
 import Text.Format
 import Thumbnail
 import Utilities
@@ -58,7 +59,7 @@ myEventHook =
     <+> minimizeEventHook
     <+> hintsEventHook
     <+> windowedFullscreenFixEventHook
-    <+> notificationsOnTop
+    -- <+> notificationsOnTop
     <+> serverModeEventHookF "XMONAD_COMMAND" defaultServerCommands
     <+> serverModeEventHookF "LAYOUT" layoutServerCommands
     <+> serverModeEventHookF "WINDOW" windowServerCommands
@@ -97,15 +98,17 @@ myEventHook =
   -- \| switch to workspace `workspacename`
   workspaceServerCommands :: String -> X ()
   workspaceServerCommands workspacename = windows $ S.greedyView workspacename
+  raiseNotifications :: X ()
+  raiseNotifications = do
+    notifications <- liftIO $ lines <$> readProcess "xdotool" ["search", "--all", "--name", "xfce4-notifyd"] ""
+    forM_ notifications $ \notification -> do
+      spawn $ format "xdotool windowfocus {0}" [notification]
   notificationsOnTop :: Event -> X All
   notificationsOnTop (AnyEvent{ev_event_type = et}) = do
-    when (et == focusOut) $ do
-      spawn "xdotool windowraise `xdotool search --all --name Dunst`"
-      spawn "xdotool windowfocus `xdotool search --all --name xfce4-notifyd`"
+    when (et == focusOut) raiseNotifications
     return $ All True
   notificationsOnTop (FocusChangeEvent{}) = do
-    spawn "xdotool windowraise `xdotool search --all --name Dunst`"
-    spawn "xdotool windowraise `xdotool search --all --name xfce4-notifyd`"
+    raiseNotifications
     return $ All True
   notificationsOnTop ev = return $ All True
 
