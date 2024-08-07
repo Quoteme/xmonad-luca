@@ -105,7 +105,7 @@
           name = "xmonad-luca";
           pname = "xmonad-luca";
           version = "1.0";
-          src = ./src;
+          src = ./xmonad-luca;
 
           nativeBuildInputs = with pkgs; [
             makeWrapper
