@@ -87,9 +87,8 @@ myStartupHook = do
   -- enable tap-to-click
   spawnOnce "xinput set-prop 'ELAN1201:00 04F3:3098 Touchpad' 'libinput Tapping Enabled' 1"
   -- tabletModeHook
-  spawnOnce "light-locker --lock-on-lid"
-  spawnOnce "/etc/nixos/scripts/xidlehook.sh"
-  spawnOnce "touchegg &"
+  -- spawnOnce "/etc/nixos/scripts/xidlehook.sh"
+  -- spawnOnce "touchegg &"
   spawnOnce "bluetooth off"
   spawnOnce "autoscreenrotation.sh &"
   spawnOnce "$(echo $(nix eval --raw nixos.polkit_gnome.outPath)/libexec/polkit-gnome-authentication-agent-1)"
@@ -100,7 +99,7 @@ myStartupHook = do
   spawnOnce "nitrogen --restore &"
   spawnOnce "batsignal -b -n BAT0"
   -- spawnOnce "com.slack.Slack"
-  spawnOnce "/etc/nixos/scripts/autohibernate.sh"
+  -- spawnOnce "/etc/nixos/scripts/autohibernate.sh"
   spawnOnOnce "3" "thunderbird"
   spawnOnce "pactl load-module module-bluetooth-policy auto_switch=2"
   spawnOnce "pactl load-module module-bluetooth-discover"
@@ -112,7 +111,7 @@ myStartupHook = do
   spawnOnce "~/.autostart.sh"
   spawnOnce "~/.local/bin/lucapanel"
   spawnOnce "launch-notification-manager"
-  spawnOnce "xhost +si:localuser:$USER"
+  -- spawnOnce "xhost +si:localuser:$USER"
   setWMName "LG3D"
 
 -- Main
