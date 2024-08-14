@@ -9,8 +9,7 @@ module Keybindings where
 -- for some fullscreen events, also for xcomposite in obs.
 
 import Constants qualified
-import Control.Concurrent (threadDelay)
-import Control.Concurrent.STM
+import Control.Concurrent (MVar, modifyMVar_, newMVar, threadDelay)
 import Control.Monad (unless)
 import DBusServer qualified
 import Data.List (elemIndex)
@@ -117,8 +116,8 @@ myKeys config =
       ,
         ( "M-<Space>"
         , addName "Layout: next" $ do
-            appstate <- XS.get :: X (TVar State.AppState)
-            liftIO $ atomically $ modifyTVar appstate State.nextLayout
+            appstate <- XS.get :: X (MVar State.AppState)
+            liftIO $ modifyMVar_ appstate (pure . State.nextLayout)
             DBusServer.signalLayoutChanged
             sendMessage NextLayout
         )

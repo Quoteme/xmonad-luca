@@ -1,6 +1,6 @@
 module State where
 
-import Control.Concurrent.STM (TVar, atomically, modifyTVar, newTVar, newTVarIO)
+import Control.Concurrent (MVar, modifyMVar_, newMVar)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.List (sort, sortOn)
@@ -26,8 +26,8 @@ data AppState = AppState
   , minimizedWindows :: MinimizedWindows
   }
 
-instance ExtensionClass (TVar AppState) where
-  initialValue = unsafePerformIO $ newTVarIO def
+instance ExtensionClass (MVar AppState) where
+  initialValue = unsafePerformIO $ newMVar def
 
 def :: AppState
 def =
@@ -55,13 +55,13 @@ _getWorkspaces = do
 
 updateWorkspaces :: X ()
 updateWorkspaces = do
-  appstate <- XS.get :: X (TVar State.AppState)
+  appstate <- XS.get :: X (MVar State.AppState)
   wi <- _getWorkspaces
-  liftIO $ atomically $ modifyTVar appstate $ \s -> s{State.workspaces = wi}
+  liftIO $ modifyMVar_ appstate $ \s -> pure s{State.workspaces = wi}
 
 updateMinimizedWindows :: X ()
 updateMinimizedWindows = do
-  appstate <- XS.get :: X (TVar State.AppState)
+  appstate <- XS.get :: X (MVar State.AppState)
   minimized' <- withMinimized pure
   minimized <-
     mapM
@@ -71,14 +71,14 @@ updateMinimizedWindows = do
       )
       minimized' ::
       X MinimizedWindows
-  liftIO $ atomically $ modifyTVar appstate $ \s -> s{State.minimizedWindows = minimized}
+  liftIO $ modifyMVar_ appstate $ \s -> return s{State.minimizedWindows = minimized}
 
-initialize :: X (TVar AppState)
+initialize :: X (MVar AppState)
 initialize = do
   -- get a list of strings (workspace names)
   wi <- _getWorkspaces
   liftIO $
-    newTVarIO
+    newMVar
       def
         { workspaces = wi
         }
