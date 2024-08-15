@@ -1,7 +1,6 @@
 module DBusServer where
 
 import Control.Concurrent
-import Control.Concurrent.STM
 import Control.Monad
 import Control.Monad.IO.Class
 import DBus
@@ -14,7 +13,7 @@ import XMonad.Actions.Minimize (withMinimized)
 import XMonad.StackSet (peek)
 import XMonad.Util.ExtensibleState qualified as XS
 
-start :: TVar State.AppState -> IO ()
+start :: MVar State.AppState -> IO ()
 start appState = do
   putStrLn "Starting DBus server"
   client <- connectSession
@@ -35,16 +34,16 @@ start appState = do
       { interfaceName = interfaceName_ "org.xmonad.bus"
       , interfaceMethods =
           [ autoMethod (memberName_ "Layout") $ do
-              state <- readTVarIO appState
+              state <- readMVar appState
               return (State.layout state)
           , autoMethod (memberName_ "Layouts") $ do
-              state <- readTVarIO appState
+              state <- readMVar appState
               return (State.layouts state)
           , autoMethod (memberName_ "Workspaces") $ do
-              state <- readTVarIO appState
+              state <- readMVar appState
               return (State.workspaces state)
           , autoMethod (memberName_ "MinimizedWindows") $ do
-              state <- readTVarIO appState
+              state <- readMVar appState
               return (State.minimizedWindows state)
           ]
       , interfaceSignals =
@@ -74,9 +73,9 @@ for an example, see [signalLayoutChanged].
 -}
 _signalAppStateChanged :: (IsVariant a) => String -> (State.AppState -> a) -> X ()
 _signalAppStateChanged memberName' stateAccessor = do
-  appState <- XS.get :: X (TVar State.AppState)
+  appState <- XS.get :: X (MVar State.AppState)
   liftIO $ do
-    state <- readTVarIO appState
+    state <- readMVar appState
     client <- connectSession
     emit client $
       ( signal
