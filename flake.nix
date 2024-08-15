@@ -58,6 +58,7 @@
           qt5ct
           kdePackages.qtstyleplugin-kvantum
           xclip
+          flameshot
           xdotool
           xdotool
           xorg.xinput
