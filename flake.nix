@@ -44,7 +44,7 @@
         dependencies = with pkgs; [
           (haskellPackages.ghcWithPackages myHaskellPackages)
           brightnessctl
-          gnome.zenity
+          zenity
           inputs.screenrotate.defaultPackage.x86_64-linux
           jgmenu
           libinput
@@ -59,7 +59,6 @@
           kdePackages.qtstyleplugin-kvantum
           xclip
           flameshot
-          xdotool
           xdotool
           xorg.xinput
           xorg.xmessage
