@@ -2,7 +2,8 @@
   description = "Luca's xmonad configuration 🚀";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/57610d2f8f0937f39dbd72251e9614b1561942d8";
+    nixpkgs.url =
+      "github:nixos/nixpkgs/57610d2f8f0937f39dbd72251e9614b1561942d8";
     screenrotate = {
       url = "github:Quoteme/screenrotate";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -23,24 +24,23 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [
-            inputs.xmonad-contrib.overlay
-          ];
+          overlays = [ inputs.xmonad-contrib.overlay ];
           config.allowBroken = true;
         };
-        myHaskellPackages = (hpkgs: with hpkgs; [
-          # TODO: add the floating-window-decorations patch from:
-          # https://github.com/xmonad/xmonad/issues/355
-          base
-          colour
-          lens
-          named
-          safe
-          text-format-simple
-          xmonad
-          xmonad-contrib
-          xmonad-extras
-        ]);
+        myHaskellPackages = (hpkgs:
+          with hpkgs; [
+            # TODO: add the floating-window-decorations patch from:
+            # https://github.com/xmonad/xmonad/issues/355
+            base
+            colour
+            lens
+            named
+            safe
+            text-format-simple
+            xmonad
+            xmonad-contrib
+            xmonad-extras
+          ]);
         dependencies = with pkgs; [
           (haskellPackages.ghcWithPackages myHaskellPackages)
           brightnessctl
@@ -55,7 +55,7 @@
           pamixer
           picom
           pulseaudio
-          qt5ct
+          libsForQt5.qt5ct
           kdePackages.qtstyleplugin-kvantum
           xclip
           flameshot
@@ -63,12 +63,10 @@
           xdotool
           xorg.xinput
           xorg.xmessage
-          (writeShellScriptBin "launch-notification-manager" ''
-            						${pkgs.xfce.xfce4-notifyd}/lib/xfce4/notifyd/xfce4-notifyd
-            					'')
+          (writeShellScriptBin "launch-notification-manager"
+            "	${pkgs.xfce.xfce4-notifyd}/lib/xfce4/notifyd/xfce4-notifyd\n")
         ];
-      in
-      rec {
+      in rec {
         defaultPackage = packages.xmonad-luca;
 
         devShell = pkgs.mkShell {
@@ -78,18 +76,19 @@
             bustle
             d-spy
             (haskellPackages.ghcWithPackages myHaskellPackages)
-            (pkgs.writeShellScriptBin "install-xmonad-home" /*bash*/ ''
-              #!/usr/bin/env bash
-              echo "This script will build and install xmonad-luca to ~/.cache/xmonad/xmonad-x86_64-linux"
-              nix build
-              cp -r result/bin/xmonad-luca ~/.cache/xmonad/xmonad-x86_64-linux
-              if [ $? -eq 0 ]; then
-                echo "Copy successful."
-                chmod +rw ~/.cache/xmonad/xmonad-x86_64-linux 
-              else
-                echo "Copy failed."
-              fi
-            '')
+            (pkgs.writeShellScriptBin "install-xmonad-home" # bash
+              ''
+                #!/usr/bin/env bash
+                echo "This script will build and install xmonad-luca to ~/.cache/xmonad/xmonad-x86_64-linux"
+                nix build
+                cp -r result/bin/xmonad-luca ~/.cache/xmonad/xmonad-x86_64-linux
+                if [ $? -eq 0 ]; then
+                  echo "Copy successful."
+                  chmod +rw ~/.cache/xmonad/xmonad-x86_64-linux 
+                else
+                  echo "Copy failed."
+                fi
+              '')
           ];
         };
 
@@ -99,9 +98,7 @@
           version = "1.0";
           src = ./xmonad-luca;
 
-          nativeBuildInputs = with pkgs; [
-            makeWrapper
-          ];
+          nativeBuildInputs = with pkgs; [ makeWrapper ];
 
           buildInputs = dependencies ++ [ packages.xmonadctl ];
 
@@ -128,7 +125,9 @@
 
           preFixup = ''
             wrapProgram "$out/bin/xmonad-luca" \
-              --prefix PATH : ${pkgs.lib.makeBinPath (dependencies ++ [packages.xmonadctl])}
+              --prefix PATH : ${
+                pkgs.lib.makeBinPath (dependencies ++ [ packages.xmonadctl ])
+              }
           '';
         };
 
@@ -138,9 +137,8 @@
           version = "1.0";
           src = ./xmonadctl;
 
-          buildInputs = with pkgs; [
-            (pkgs.haskellPackages.ghcWithPackages (pkgs: [ pkgs.X11 ]))
-          ];
+          buildInputs = with pkgs;
+            [ (pkgs.haskellPackages.ghcWithPackages (pkgs: [ pkgs.X11 ])) ];
           buildPhase = ''
             ghc --make Main.hs
           '';
@@ -150,6 +148,5 @@
             chmod +x $out/bin/xmonadctl
           '';
         };
-      }
-    );
+      });
 }
